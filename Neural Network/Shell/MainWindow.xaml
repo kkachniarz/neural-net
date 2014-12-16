@@ -59,6 +59,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="15"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -69,55 +70,58 @@
         <Label Grid.Row="0" Grid.Column="0" Content="Network type:" />
         <ComboBox Name="NetworkTypeCombobox" Grid.Row="0" Grid.Column="1" SelectedIndex="0"/>
 
-        <Label Grid.Row="1" Grid.Column="0" Content="MLP history length" 
-               ToolTip="How many historical data points should be fed to the network (if set to n, network will have n*n_inputs additional input neurons)"/>
-        <TextBox Name="MLPHistoryLength" Grid.Row="1" Grid.Column="1" Text="4"/>
+        <Label Grid.Row="1" Grid.Column="0" Content="Problem type:" />
+        <ComboBox Name="ProblemTypeCombobox" Grid.Row="1" Grid.Column="1" SelectedIndex="0"/>
 
-        <Label Grid.Row="2" Grid.Column="0" Content="Hidden neurons:" 
+        <Label Grid.Row="2" Grid.Column="0" Content="CTS previous values" 
+               ToolTip="How many previous function values should be fed to the network"/>
+        <TextBox Name="CTSPreviousValues" Grid.Row="2" Grid.Column="1" Text="1"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Content="Hidden neurons:" 
                ToolTip="First and last layer will be created based on a train set, a test set and a problem type."/>
-        <TextBox Name="LayersTextBox" Grid.Row="2" Grid.Column="1" Text="5"/>
+        <TextBox Name="LayersTextBox" Grid.Row="3" Grid.Column="1" Text="5"/>
 
-        <Label Grid.Row="3" Grid.Column="0" Content="Output count" 
+        <Label Grid.Row="4" Grid.Column="0" Content="Output count" 
                ToolTip="The number of outputs. Used also for parsing the data"/>
-        <TextBox Name="OutputCount" Grid.Row="3" Grid.Column="1" Text="1"/>
+        <TextBox Name="OutputCount" Grid.Row="4" Grid.Column="1" Text="1"/>
 
-        <Label Grid.Row="4" Grid.Column="0" Content="Bias:" />
-        <ComboBox Name="BiasCombobox" Grid.Row="4" Grid.Column="1"/>
+        <Label Grid.Row="5" Grid.Column="0" Content="Bias:" />
+        <ComboBox Name="BiasCombobox" Grid.Row="5" Grid.Column="1"/>
 
-        <Label Grid.Row="5" Grid.Column="0" Content="Activation:" />
-        <ComboBox Name="ActivationCombobox" Grid.Row="5" Grid.Column="1"/>
+        <Label Grid.Row="6" Grid.Column="0" Content="Activation:" />
+        <ComboBox Name="ActivationCombobox" Grid.Row="6" Grid.Column="1"/>
 
-        <Label Grid.Row="6" Grid.Column="0" Content="Iterations:" />
-        <TextBox Name="Iterations" Grid.Row="6" Grid.Column="1" Text="50"/>
+        <Label Grid.Row="7" Grid.Column="0" Content="Iterations:" />
+        <TextBox Name="Iterations" Grid.Row="7" Grid.Column="1" Text="50"/>
 
-        <Label Grid.Row="7" Grid.Column="0" Content="Learning rate:" />
-        <Slider Name="LearningRateSlider" Grid.Row="7" Grid.Column="1" 
+        <Label Grid.Row="8" Grid.Column="0" Content="Learning rate:" />
+        <Slider Name="LearningRateSlider" Grid.Row="8" Grid.Column="1" 
                 Maximum="1" Minimum="0.01" Value="0.14" TickFrequency="0.1" SmallChange="0.01">
             <Slider.ToolTip>
                 <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}"/>
             </Slider.ToolTip>
         </Slider>
 
-        <Label Grid.Row="8" Grid.Column="0" Content="Momentum:" />
-        <Slider Name="MomentumSlider" Grid.Row="8" Grid.Column="1" 
+        <Label Grid.Row="9" Grid.Column="0" Content="Momentum:" />
+        <Slider Name="MomentumSlider" Grid.Row="9" Grid.Column="1" 
                 Maximum="1" Minimum="0.00" Value="0.2" TickFrequency="0.1" SmallChange="0.01">
             <Slider.ToolTip>
                 <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}"/>
             </Slider.ToolTip>
         </Slider>
 
-        <Label Grid.Row="9" Grid.Column="0" Content="Fill test file:" />
-        <ComboBox Name="AppendTestCombobox" Grid.Row="9" Grid.Column="1"/>
+        <Label Grid.Row="10" Grid.Column="0" Content="Fill test file:" />
+        <ComboBox Name="AppendTestCombobox" Grid.Row="10" Grid.Column="1"/>
 
-        <Label Grid.Row="11" Grid.Column="0" Content="Train set percentage:" 
+        <Label Grid.Row="12" Grid.Column="0" Content="Train set percentage:" 
                ToolTip="Percentage of the data set that will be used for network training"/>
-        <TextBox Name="TrainSetPercentage" Grid.Row="11" Grid.Column="1" Text="0.7"/>
+        <TextBox Name="TrainSetPercentage" Grid.Row="12" Grid.Column="1" Text="0.7"/>
 
-        <Button Grid.Row="12" Grid.Column="0" Content="Load data" Click="ReadDataSet"/>
-        <Label Name="TrainSetLabel" Grid.Row="12" Grid.Column="1" 
+        <Button Grid.Row="13" Grid.Column="0" Content="Load data" Click="ReadDataSet"/>
+        <Label Name="TrainSetLabel" Grid.Row="13" Grid.Column="1" 
                Content="..."/>
 
-        <Button Grid.Row="14" Grid.Column="0" Name="StartButton" Click="StartButtonClick" Content="START"
+        <Button Grid.Row="15" Grid.Column="0" Name="StartButton" Click="StartButtonClick" Content="START"
                 Grid.ColumnSpan="2" Width="100" FontWeight="Bold" IsEnabled="False"/>
     </Grid>
 </Window>

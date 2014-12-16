@@ -1,4 +1,5 @@
 ﻿using LearningNN;
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Microsoft.Win32;
 using Neural_Network;
@@ -10,7 +11,6 @@ using SharpNN.Statistics;
 using Shell.Enums;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,9 +27,11 @@ namespace Neural_Network
 {
     public partial class MainWindow : Window
     {
-        public bool IsReady { get { return dataSet != null; } }
+        public bool IsReady { get { return csvLines != null; } }
 
-        List<DenseVector> dataSet;
+        List<DenseVector> csvLines;
+        IDataSet testDataSet;
+        IDataSet trainDataSet;
         string dataSetPath;
 
         public MainWindow()
@@ -37,11 +39,12 @@ namespace Neural_Network
             InitializeComponent();
 
             NetworkTypeCombobox.ItemsSource = Enum.GetValues(typeof(NetworkType)).Cast<NetworkType>();
+            ProblemTypeCombobox.ItemsSource = Enum.GetValues(typeof(PartIIProblemType)).Cast<PartIIProblemType>();
             ActivationCombobox.ItemsSource = Enum.GetValues(typeof(ActivationFunction)).Cast<ActivationFunction>();
             BiasCombobox.ItemsSource = Enum.GetValues(typeof(YesNo)).Cast<YesNo>();
             AppendTestCombobox.ItemsSource = Enum.GetValues(typeof(YesNo)).Cast<YesNo>();
 
-            ActivationCombobox.SelectedIndex = 1;
+            ActivationCombobox.SelectedIndex = 0;
             BiasCombobox.SelectedIndex = 0;
             AppendTestCombobox.SelectedIndex = 1;
         }
@@ -54,7 +57,7 @@ namespace Neural_Network
             if (dataSetPath == null)
                 return;
 
-            dataSet = FileManager.ReadDataFromCSV(dataSetPath);
+            csvLines = FileManager.ReadDataFromCSV(dataSetPath);
             TrainSetLabel.Content = shortName;
 
             if (IsReady)
@@ -99,21 +102,24 @@ namespace Neural_Network
             int iterations = int.Parse(Iterations.Text);
             double learningRate = LearningRateSlider.Value;
             double momentum = MomentumSlider.Value;
-            float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
+            float trainSetPercentage = float.Parse(TrainSetPercentage.Text);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
-            int historyLength = networkType == NetworkType.MLP? int.Parse(MLPHistoryLength.Text) : 0;
-            BackpropagationRunMode runMode = BackpropagationRunMode.Online; // visit training examples in order provided
-            // it's always regression: (x1, x2, ..., xn) -> (y1, y2, ..., ym) real values
-            CasesData trainingCases;
-            CasesData testCases;
+            int historyLength = networkType == NetworkType.MLP? int.Parse(CTSPreviousValues.Text) : 0;
+
             YesNo appendTestFile = (YesNo)AppendTestCombobox.SelectedItem;
+            PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
 
-            int input = dataSet[0].Count() - outputCount;
-            CasesData.InitializeForPrediction(dataSet, out trainingCases, out testCases, outputCount, historyLength, trainSetPercentage);
-            layersVal.Insert(0, input * (historyLength + 1));
+            if (problemType == PartIIProblemType.CTS)
+            {
+                InitCTS(layersVal, trainSetPercentage, historyLength);
+            }
+            else
+            {
+                InitStock(layersVal, trainSetPercentage, outputCount);
+            }
+
             layersVal.Add(outputCount);
-
             INetwork network = null;
             switch(networkType)
             {
@@ -130,17 +136,60 @@ namespace Neural_Network
                     break;
             }
 
-
-            LearningResult learningResult = BackpropagationManager.Run(network, trainingCases, testCases,
-                runMode, iterations, learningRate, momentum);
+            LearningResult learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
+                iterations, learningRate, momentum);
 
             if (appendTestFile == YesNo.Yes)
             {
-                AppendCSVile(dataSetPath, testCases);
+                //AppendCSVile(dataSetPath, testCases);
             }
 
             ShowNetworkErrorWindow(learningResult);
-            ShowRegressionWindow(trainingCases, testCases);
+            Show1DRegression(trainDataSet, testDataSet, true);
+        }
+
+        private void InitCTS(List<int> layersVal, float trainSetPercentage, int historyLength)
+        {
+            layersVal.Insert(0, historyLength); // network needs as many inputs as many historical values we feed it.
+            int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
+            List<DenseVector> chaoticValues = csvLines; // no need for further parsing
+
+            List<DenseVector> trainValues = chaoticValues.ExtractList(0, trainSetEndIndex);
+            List<DenseVector> testValues = chaoticValues.ExtractList(trainSetEndIndex, chaoticValues.Count);
+
+            trainDataSet = new ChaoticDataSet(trainValues, historyLength, 0);
+            if (trainSetEndIndex >= chaoticValues.Count - 1)
+            {
+                testDataSet = trainDataSet;
+            }
+            else
+            {
+                testDataSet = new ChaoticDataSet(testValues, historyLength, trainSetEndIndex);
+            }
+        }
+
+        private void InitStock(List<int> layersVal, float trainSetPercentage, int outputCount)
+        {
+            int inputCount = csvLines[0].Count - outputCount; // this way we can calculate number of inputs
+            layersVal.Insert(0, inputCount);
+            int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
+
+            List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, inputCount)).ToList();
+            List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(inputCount, outputCount)).ToList();
+
+
+            trainDataSet = new StockDataSet(allInputs.ExtractList(0, trainSetEndIndex), 
+                allOutputs.ExtractList(0, trainSetEndIndex), 0);
+
+            if (trainSetEndIndex >= allInputs.Count - 1)
+            {
+                testDataSet = trainDataSet;
+            }
+            else
+            {
+                testDataSet = new StockDataSet(allInputs.ExtractList(trainSetEndIndex, csvLines.Count),
+                    allOutputs.ExtractList(trainSetEndIndex, csvLines.Count), trainSetEndIndex);
+            }
         }
 
         private void AppendCSVile(string path, CasesData data)
@@ -164,48 +213,55 @@ namespace Neural_Network
             errorWindow.Show();
         }
 
-        private void ShowRegressionWindow(CasesData trainingSet, CasesData testSet)
+        private void Show1DRegression(IDataSet trainingSet, IDataSet testSet, bool debugPlot) // debugPlot doesn't use time index, just X -> Y mapping values
         {
+            List<RegressionPoint> trainPoints = new List<RegressionPoint>();
+            List<RegressionPoint> testIdealPoints = new List<RegressionPoint>();
+            List<RegressionPoint> networkAnswers = new List<RegressionPoint>();
+            Func<Pattern, double> patternToDouble;
+            if(debugPlot)
+            {
+                patternToDouble = p => p.Input[0];
+            }
+            else
+            {
+               patternToDouble = p => p.TimeIndex;
+            }
+
+            foreach(Pattern p in trainingSet.EnumeratePatterns())
+            {
+                trainPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
+            }
+
+            foreach(Pattern p in testSet.EnumeratePatterns())
+            {
+                testIdealPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
+                networkAnswers.Add(new RegressionPoint(patternToDouble(p), p.NetworkAnswer.At(0)));
+            }
+
             Window regressionWindow = new RegressionWindow(
-                MakeRegressionPointList(trainingSet, trainingSet.GetIdealOutput), 
-                MakeRegressionPointList(testSet, testSet.GetIdealOutput),
-                MakeRegressionPointList(testSet, testSet.GetNetworkAnswer)); 
+                trainPoints,
+                testIdealPoints,
+                networkAnswers);
             regressionWindow.Show();
         }
+    }
 
-        private List<RegressionPoint> MakeRegressionPointList(CasesData dataSet, Func<int, DenseVector> outputGetter)
-        {
-            List<RegressionPoint> points = new List<RegressionPoint>();
-            for (int i = 0; i < dataSet.CasesCount; i++)
-            {
-                points.Add(new RegressionPoint(dataSet.GetInput(i).At(0), outputGetter(i).At(0)));
-            }
+    public enum YesNo
+    {
+        Yes,
+        No
+    }
 
-            return points;
-        }
+    public enum ActivationFunction
+    {
+        Unipolar,
+        Bipolar
+    }
 
-        private void ShowClassificationWindow(CasesData trainingSet, CasesData testSet)
-        {
-            List<ClassificationPoint> testPoints = new List<ClassificationPoint>();
-            testPoints.AddRange(MakeClassificationPointList(testSet, testSet.GetClasificationOutput));
-
-            List<ClassificationPoint> idealPoints = new List<ClassificationPoint>();
-            idealPoints.AddRange(MakeClassificationPointList(trainingSet, trainingSet.GetClasificationOutput));
-
-            Window classificationWindow = new ClassificationWindow(testPoints, idealPoints, trainingSet.ClassIndexes);
-            classificationWindow.Show();
-        }
-
-        private IList<ClassificationPoint> MakeClassificationPointList(CasesData dataSet, Func<int, DenseVector> outputGetter)
-        {
-            IList<ClassificationPoint> points = new List<ClassificationPoint>();
-            for (int i = 0; i < dataSet.CasesCount; i++)
-            {
-                points.Add(new ClassificationPoint(dataSet.GetInput(i).At(0),
-                    dataSet.GetInput(i).At(1), (int)outputGetter(i).At(0)));
-            }
-
-            return points;
-        }
+    public enum PartIIProblemType
+    {
+        CTS,
+        Stock
     }
 }

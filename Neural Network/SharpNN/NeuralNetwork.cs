@@ -15,7 +15,7 @@ namespace SharpNN
 {
     public partial class NeuralNetwork : INetwork
     {
-        private const double DEFAULT_RND_RANGE = 0.5;
+        private const double DEFAULT_RND_RANGE = 0.5;//0.05;
         private const bool DEFAULT_HAS_BIAS = false;
         private List<Layer> layers;
         private InputLayer inputLayer;
@@ -133,7 +133,7 @@ namespace SharpNN
         {
             if (networkInput.Count != layers[0].NeuronCount)
             {
-                throw new InvalidOperationException("Inputs array length: " + networkInput.Count +
+                throw new InvalidOperationException("Input length: " + networkInput.Count +
                     " does not match neuron count at input layer: " + layers[0].NeuronCount);
             }
         }

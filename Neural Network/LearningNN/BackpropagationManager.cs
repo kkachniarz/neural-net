@@ -8,15 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RecursiveNN;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace LearningNN
 {
     public static class BackpropagationManager
     {
-        public static LearningResult Run(INetwork network, CasesData trainData, CasesData testData, 
-            BackpropagationRunMode runMode, int iterations, double learningRate, double momentum)
+        public static LearningResult Run(INetwork network, IDataSet trainData, IDataSet testData, 
+            int iterations, double learningRate, double momentum)
         {
-            AssertArguments(trainData, testData, learningRate);
+            //AssertArguments(trainData, testData, learningRate); // TODO: write assertions
             NormalizeData(network, trainData, testData);
 
             if (!network.IsInitialized)
@@ -28,8 +29,7 @@ namespace LearningNN
 
             for (int currIter = 0; currIter < iterations; currIter++)
             {
-                learningResult.MSEHistory.Add(
-                    LearnAge(network, trainData, runMode, learningRate, momentum));
+                learningResult.MSEHistory.Add(LearnAge(network, trainData, learningRate, momentum));
             }
 
             FillOutput(network, testData);
@@ -38,36 +38,26 @@ namespace LearningNN
             return learningResult;
         }
 
-        private static double LearnAge(INetwork network, CasesData data,
-            BackpropagationRunMode runMode, double learningRate, double momentum)
+        private static double LearnAge(INetwork network, IDataSet data,
+            double learningRate, double momentum)
         {
-            if (runMode == BackpropagationRunMode.Stochastic)
+            foreach(Pattern pattern in data.EnumeratePatterns())
             {
-                data.Permutate(); 
-            }
-
-            for (int i = 0; i < data.CasesCount; i++)
-            {
-                var networkAnswer = network.ComputeOutput(data.GetInput(i));
-                var modelAnswer = data.GetIdealOutput(i);
+                Vector<double> networkAnswer = network.ComputeOutput(pattern.Input);
+                Vector<double> modelAnswer = pattern.IdealOutput;
 
                 network.CalculateAndPropagateError(modelAnswer);
                 network.ImproveWeights(learningRate, momentum);
             }
 
-            if (data.ProblemType == ProblemType.Classification)
-            {
-                return CalculateClassificationError(network, data);
-            }
-
             return CalculateMSEError(network, data);
         }
 
-        private static void FillOutput(INetwork network, CasesData data)
+        private static void FillOutput(INetwork network, IDataSet data)
         {
-            for (int i = 0; i < data.CasesCount; i++)
+            foreach(Pattern p in data.EnumeratePatterns())
             {
-                data.SaveNetworkAnswer(i, network.ComputeOutput(data.GetInput(i)));
+                p.NetworkAnswer = network.ComputeOutput(p.Input);
             }
         }
 
@@ -88,30 +78,31 @@ namespace LearningNN
                 throw new ArgumentException("leariningRate shoule be possitive.");
             };
         }
-        private static void NormalizeData(INetwork network, CasesData trainData, CasesData testData)
+
+        private static void NormalizeData(INetwork network, IDataSet trainData, IDataSet testData)
         {
             double minValue = Math.Min(trainData.MinValue, testData.MinValue);
             double maxValue = Math.Max(trainData.MaxValue, testData.MaxValue);
 
-            trainData.Normalize(maxValue, minValue, network.Activation.MaxValue, network.Activation.MinValue);
-            testData.Normalize(maxValue, minValue, network.Activation.MaxValue, network.Activation.MinValue);
+            trainData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
+            testData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
         }
 
-        private static void NormalizeDataBack(INetwork network, CasesData trainData, CasesData testData)
+        private static void NormalizeDataBack(INetwork network, IDataSet trainData, IDataSet testData)
         {
-            testData.NormalizeBack(true);
-            trainData.NormalizeBack(false);
+            testData.NormalizeBack();
+            trainData.NormalizeBack();
         }
 
-        private static double CalculateMSEError(INetwork network, CasesData trainingSet)
+        private static double CalculateMSEError(INetwork network, IDataSet dataSet)
         {
             double mseSum = 0.0;
-            for(int i=0; i<trainingSet.CasesCount; i++)
+            foreach(Pattern p in dataSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawMSE(trainingSet.GetIdealOutput(i) - network.ComputeOutput(trainingSet.GetInput(i)));
+                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
-            return MSECalculator.CalculateEpochMSE(mseSum, trainingSet.CasesCount, network.Activation);
+            return MSECalculator.CalculateEpochMSE(mseSum, dataSet.PatternCount, network.Activation);
         }
 
         private static double CalculateClassificationError(INetwork network, CasesData trainingSet)
@@ -127,23 +118,5 @@ namespace LearningNN
 
             return 1.0 - (correctness / (double)trainingSet.CasesCount);
         }
-    }
-
-    public enum BackpropagationRunMode
-    {
-        Online,
-        Stochastic
-    }
-
-    public enum PartIIProblemType
-    {
-        CTS,
-        Stock
-    }
-
-    public enum ProblemType
-    {
-        Classification,
-        Regression
     }
 }

@@ -25,16 +25,16 @@ namespace Neural_Network.Plotting
     {
         private PlotModel plotModel;
 
-        public RegressionWindow(List<RegressionPoint> trainingPoints, List<RegressionPoint> idealAnswer, List<RegressionPoint> networkAnswer = null)
+        public RegressionWindow(List<RegressionPoint> trainingSet, List<RegressionPoint> testSetIdeals, List<RegressionPoint> networkAnswers = null)
         {
             InitializeComponent();
             plotModel = new PlotModel();
-            if(networkAnswer == null)
+            if(networkAnswers == null)
             {
-                networkAnswer = new List<RegressionPoint>();
+                networkAnswers = new List<RegressionPoint>();
             }
 
-            SetUpModel(trainingPoints, idealAnswer, networkAnswer);
+            SetUpModel(trainingSet, testSetIdeals, networkAnswers);
             RegressionPlot.Model = plotModel;
         }
 

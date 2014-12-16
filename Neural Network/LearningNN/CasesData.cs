@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace LearningNN
 {
+    [Obsolete("Has many leftovers from Part I. Use classess implementing IDataSet instead")]
     public class CasesData
     {
         public int ClassCount { get { return ClassIndexes.Count; } }
@@ -192,7 +193,7 @@ namespace LearningNN
 
         public void Normalize(double _maxValueFrom, double _minValueFrom, double _maxValueTo, double _minValueTo)
         {
-            normalizor = new Normalizor(_maxValueFrom, _minValueFrom, _maxValueTo, _minValueTo);
+            normalizor = new Normalizor(_minValueFrom, _maxValueFrom, _minValueTo, _maxValueTo);
 
             for (int i = 0; i < cases.Count; i++)
             {
@@ -252,7 +253,7 @@ namespace LearningNN
 
         public static void InitializeForPrediction(List<DenseVector> dataSet, out CasesData trainingCases, out CasesData testCases, 
             int outputCount, int historyLength, float trainSetPercentage = 0.7f)
-        {            
+        {
             int inputCount = dataSet[0].Count() - outputCount;
             if (inputCount < 1 || outputCount < 1)
                 throw new ArgumentException("Niepoprawne dane w plikach .csv");

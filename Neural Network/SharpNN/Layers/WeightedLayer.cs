@@ -187,7 +187,7 @@ namespace SharpNN.Layers
                 contextLayer.Next = this;
             }
 
-            this.Previous = prevLayer;
+            this.Previous = this;
         }
     }
 }

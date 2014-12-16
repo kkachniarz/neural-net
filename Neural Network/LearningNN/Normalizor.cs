@@ -8,11 +8,12 @@ namespace LearningNN
 {
     public class Normalizor
     {
+        const double EPSILON = 1E-5;
         private double maxValueFrom;
         private double minValueFrom;
         private double maxValueTo; 
         private double minValueTo;
-        public Normalizor(double _maxValueFrom, double _minValueFrom, double _maxValueTo, double _minValueTo)
+        public Normalizor(double _minValueFrom, double _maxValueFrom, double _minValueTo, double _maxValueTo)
 	    {
             maxValueFrom = _maxValueFrom;
             minValueFrom = _minValueFrom;
@@ -22,22 +23,22 @@ namespace LearningNN
 
         public double Normalize(double value)
         {
-            if(value < minValueFrom || value > maxValueFrom)
-            {
-                throw new ArgumentException("Value is out of the range.");
-            }
-
+            ValidateWithinBoundsEps(value, minValueFrom, maxValueFrom);
             return minValueTo + (maxValueTo - minValueTo) * ((value - minValueFrom)/(maxValueFrom - minValueFrom));
         }
 
         public double NormalizeBack(double value)
         {
-            if (value < minValueTo || value > maxValueTo)
+            ValidateWithinBoundsEps(value, minValueTo, maxValueTo);
+            return minValueFrom + (maxValueFrom - minValueFrom) * ((value - minValueTo) / (maxValueTo - minValueTo));
+        }
+
+        private void ValidateWithinBoundsEps(double value, double min, double max)
+        {
+            if (value < min - EPSILON || value > max + EPSILON)
             {
                 throw new ArgumentException("Value is out of the range.");
             }
-
-            return minValueFrom + (maxValueFrom - minValueFrom) * ((value - minValueTo) / (maxValueTo - minValueTo));
         }
     }
 }

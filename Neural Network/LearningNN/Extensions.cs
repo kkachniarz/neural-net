@@ -15,5 +15,16 @@ namespace LearningNN
             vector.CopySubVectorTo(ret, startIndex, 0, count);
             return ret;
         }
+
+        public static List<T> ExtractList<T>(this List<T> l, int startIndex, int endIndex)
+        {
+            List<T> ret = new List<T>();
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                ret.Add(l[i]);
+            }
+
+            return ret;
+        }
     }
 }
