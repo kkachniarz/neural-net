@@ -1,0 +1,123 @@
+﻿<Window x:Class="Neural_Network.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Neural Network" 
+        ResizeMode="NoResize" 
+        WindowStartupLocation="CenterScreen" 
+        SizeToContent="WidthAndHeight" >
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style TargetType="{x:Type Label}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="10, 3"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="10, 3"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="Width" Value="200"/>
+            </Style>
+            <Style TargetType="{x:Type ComboBox}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="10, 3"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="Width" Value="200"/>
+            </Style>
+            <Style TargetType="{x:Type Button}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="10, 3"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Height" Value="25"/>
+                <Setter Property="Width" Value="160"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Network type:" />
+        <ComboBox Name="NetworkTypeCombobox" Grid.Row="0" Grid.Column="1" SelectedIndex="0"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Content="MLP history length" 
+               ToolTip="How many historical data points should be fed to the network (if set to n, network will have n*n_inputs additional input neurons)"/>
+        <TextBox Name="MLPHistoryLength" Grid.Row="1" Grid.Column="1" Text="4"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="Hidden neurons:" 
+               ToolTip="First and last layer will be created based on a train set, a test set and a problem type."/>
+        <TextBox Name="LayersTextBox" Grid.Row="2" Grid.Column="1" Text="5"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Content="Output count" 
+               ToolTip="The number of outputs. Used also for parsing the data"/>
+        <TextBox Name="OutputCount" Grid.Row="3" Grid.Column="1" Text="1"/>
+
+        <Label Grid.Row="4" Grid.Column="0" Content="Bias:" />
+        <ComboBox Name="BiasCombobox" Grid.Row="4" Grid.Column="1"/>
+
+        <Label Grid.Row="5" Grid.Column="0" Content="Activation:" />
+        <ComboBox Name="ActivationCombobox" Grid.Row="5" Grid.Column="1"/>
+
+        <Label Grid.Row="6" Grid.Column="0" Content="Iterations:" />
+        <TextBox Name="Iterations" Grid.Row="6" Grid.Column="1" Text="50"/>
+
+        <Label Grid.Row="7" Grid.Column="0" Content="Learning rate:" />
+        <Slider Name="LearningRateSlider" Grid.Row="7" Grid.Column="1" 
+                Maximum="1" Minimum="0.01" Value="0.14" TickFrequency="0.1" SmallChange="0.01">
+            <Slider.ToolTip>
+                <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}"/>
+            </Slider.ToolTip>
+        </Slider>
+
+        <Label Grid.Row="8" Grid.Column="0" Content="Momentum:" />
+        <Slider Name="MomentumSlider" Grid.Row="8" Grid.Column="1" 
+                Maximum="1" Minimum="0.00" Value="0.2" TickFrequency="0.1" SmallChange="0.01">
+            <Slider.ToolTip>
+                <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}"/>
+            </Slider.ToolTip>
+        </Slider>
+
+        <Label Grid.Row="9" Grid.Column="0" Content="Fill test file:" />
+        <ComboBox Name="AppendTestCombobox" Grid.Row="9" Grid.Column="1"/>
+
+        <Label Grid.Row="11" Grid.Column="0" Content="Train set percentage:" 
+               ToolTip="Percentage of the data set that will be used for network training"/>
+        <TextBox Name="TrainSetPercentage" Grid.Row="11" Grid.Column="1" Text="0.7"/>
+
+        <Button Grid.Row="12" Grid.Column="0" Content="Load data" Click="ReadDataSet"/>
+        <Label Name="TrainSetLabel" Grid.Row="12" Grid.Column="1" 
+               Content="..."/>
+
+        <Button Grid.Row="14" Grid.Column="0" Name="StartButton" Click="StartButtonClick" Content="START"
+                Grid.ColumnSpan="2" Width="100" FontWeight="Bold" IsEnabled="False"/>
+    </Grid>
+</Window>

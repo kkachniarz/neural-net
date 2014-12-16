@@ -1,0 +1,30 @@
+Przewidywaæ pojedyñczy dzieñ, czy parê dni iteracyjnie? Dowolnoœæ. 
+Mo¿na tak wytrenowaæ sieæ, ¿eby przewidywa³a k dni w przód. 
+
+Zmiana czynników makroekonomiczny w czêstotliwoœci najmniej miesiêcznej.
+Cena bezyny? Cena z³ota? Kurs waluty? 
+
+Nie ma sensu podawaæ ró¿nic œrednich krocz¹cnych. Jeœli przydadz¹ siê sieci, to sama sieæ policzy ró¿nice. 
+
+Przewidujemy konkretn¹ warkoœæ z dnia n+1, bez podzia³u wejœcia na klasy. 
+
+Okna czasowe powinny byæ parametryzowane. 
+
+Oko³o 20-30 wejœæ do sieci.
+
+Mo¿na stosowaæ RProp. 
+
+Wartwy ukryte polecane 1(polecane) lub 2(ewentualnie). 
+
+Rozmiar warstwy ukrytej - mo¿na zacz¹æ od pierwiastka z wejœcia. 
+
+BEZ(!) bibliotek. 
+
+Uczenie online powinno byæ tutaj lepsze (zw³aszcza dla sieci rekurencyjnych). 
+
+Nie zapêtlamy predycji (Wa¿ne dla Paw³a !). 
+
+Zbiory testowy i treningowy s¹ rozbierzne w czasie. 
+Njlepiej jeœli zbiór testowy powinien byæ po testowym. 
+
+Przynieœæ pracê wydrukowan¹.

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Data>
+	<Layers neuronCount="2" hasBias="false" isBipolarActivation="true">
+		<Layer neuronCount="2" hasBias="false"></Layer>
+		<Layer neuronCount="1"></Layer>
+	</Layers>
+	<Propagation momentum="0.5" learningRate="0.1" iterations="100">
+	</Propagation>
+</Data>

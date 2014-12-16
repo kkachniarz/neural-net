@@ -1,0 +1,12 @@
+﻿<Window x:Class="PlottingTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="StartWindow" Height="300" Width="300">
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <Button Click="Btn_Network_Error_Click" Content="Network error plot" />
+            <Button Click="Regression_Click" Content="Regression plot" />
+            <Button Click="Classification_Click" Content="Classification plot" />
+        </StackPanel>
+    </Grid>
+</Window>
