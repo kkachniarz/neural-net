@@ -105,14 +105,14 @@ namespace Neural_Network
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
-            int historyLength = networkType == NetworkType.MLP? int.Parse(CTSPreviousValues.Text) : 0;
+            int ctsPrevValuesCount = int.Parse(CTSPreviousValues.Text);
 
             YesNo appendTestFile = (YesNo)AppendTestCombobox.SelectedItem;
             PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
 
             if (problemType == PartIIProblemType.CTS)
             {
-                InitCTS(layersVal, trainSetPercentage, historyLength);
+                InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
             }
             else
             {
