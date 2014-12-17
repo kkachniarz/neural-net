@@ -92,7 +92,7 @@
         <ComboBox Name="ActivationCombobox" Grid.Row="6" Grid.Column="1"/>
 
         <Label Grid.Row="7" Grid.Column="0" Content="Iterations:" />
-        <TextBox Name="Iterations" Grid.Row="7" Grid.Column="1" Text="50"/>
+        <TextBox Name="Iterations" Grid.Row="7" Grid.Column="1" Text="250"/>
 
         <Label Grid.Row="8" Grid.Column="0" Content="Learning rate:" />
         <Slider Name="LearningRateSlider" Grid.Row="8" Grid.Column="1" 

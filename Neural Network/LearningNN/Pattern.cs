@@ -28,5 +28,24 @@ namespace LearningNN
         {
             this.Input = input;
         }
+
+        public Pattern Clone()
+        {
+            Pattern ret = new Pattern(this.TimeIndex);
+            if (this.Input != null)
+            {
+                ret.Input = (Vector<double>)this.Input.Clone();
+            }
+            if (this.IdealOutput != null)
+            {
+                ret.IdealOutput = (Vector<double>)this.IdealOutput.Clone();
+            }
+            if (this.NetworkAnswer != null)
+            {
+                ret.NetworkAnswer = (Vector<double>)this.NetworkAnswer.Clone();
+            }
+
+            return ret;
+        }
     }
 }

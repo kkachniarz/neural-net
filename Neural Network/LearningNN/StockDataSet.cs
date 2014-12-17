@@ -20,6 +20,10 @@ namespace LearningNN
             UpdateExtrema(outputs);
         }
 
+        private StockDataSet(int startTime) : base(startTime)
+        {
+        }
+
         private void AddPatterns(List<DenseVector> inputs, List<DenseVector> outputs)
         {
             for(int i = 0; i < inputs.Count; i++)
@@ -37,6 +41,24 @@ namespace LearningNN
             {
                 throw new ArgumentException("Inequal inputs and outputs count. Cannot construct data set");
             }
+        }
+
+        public override IDataSet Clone()
+        {
+            StockDataSet clone = new StockDataSet(this.startTime);
+            clone.patterns = new List<Pattern>();
+            foreach (Pattern p in this.patterns)
+            {
+                Pattern clonedPattern = p.Clone();
+                clone.patterns.Add(clonedPattern);
+            }
+
+            clone.normalizer = this.normalizer;
+            clone.MinValue = this.MinValue;
+            clone.MaxValue = this.MaxValue;
+            clone.startTime = this.startTime;
+
+            return clone;
         }
     }
 }

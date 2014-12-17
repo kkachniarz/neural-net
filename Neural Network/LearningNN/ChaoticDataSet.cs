@@ -24,6 +24,10 @@ namespace LearningNN
             UpdateExtrema(chaoticSeries);
         }
 
+        private ChaoticDataSet(int startTime) : base(startTime)
+        {
+        }
+
         private void AddPatterns(IList<DenseVector> chaoticSeries, int startIndex)
         {
             for (int i = startIndex; i < chaoticSeries.Count; i++)
@@ -52,6 +56,25 @@ namespace LearningNN
             {
                 throw new ArgumentException("Chaotic time series must consist of vectors of length 1");
             }
+        }
+
+        public override IDataSet Clone()
+        {
+            ChaoticDataSet clone = new ChaoticDataSet(this.startTime);
+            clone.patterns = new List<Pattern>();
+            foreach(Pattern p in this.patterns)
+            {
+                Pattern clonedPattern = p.Clone();
+                clone.patterns.Add(clonedPattern);
+            }
+
+            clone.historyLength = this.historyLength;
+            clone.normalizer = this.normalizer;
+            clone.MinValue = this.MinValue;
+            clone.MaxValue = this.MaxValue;
+            clone.startTime = this.startTime;
+
+            return clone;
         }
     }
 }

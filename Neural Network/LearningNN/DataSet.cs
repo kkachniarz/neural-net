@@ -83,5 +83,7 @@ namespace LearningNN
         {
             return patterns[i]; // skip index checking
         }
+
+        public abstract IDataSet Clone();
     }
 }

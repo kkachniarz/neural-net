@@ -161,7 +161,7 @@ namespace Neural_Network
             trainDataSet = new ChaoticDataSet(trainValues, historyLength, 0);
             if (trainSetEndIndex >= chaoticValues.Count - 1)
             {
-                testDataSet = trainDataSet;
+                testDataSet = trainDataSet.Clone();
             }
             else
             {
@@ -177,7 +177,6 @@ namespace Neural_Network
 
             List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, inputCount)).ToList();
             List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(inputCount, outputCount)).ToList();
-
 
             trainDataSet = new StockDataSet(allInputs.ExtractList(0, trainSetEndIndex), 
                 allOutputs.ExtractList(0, trainSetEndIndex), 0);

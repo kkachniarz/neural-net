@@ -14,6 +14,8 @@ namespace LearningNN
 
         Pattern GetPatternAt(int i);
         IEnumerable<Pattern> EnumeratePatterns();
+        IDataSet Clone();
+
         void Normalize(double minFrom, double maxFrom, double minTo, double maxTo);
         void NormalizeBack();
     }
