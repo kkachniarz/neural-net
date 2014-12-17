@@ -110,8 +110,8 @@
             </Slider.ToolTip>
         </Slider>
 
-        <Label Grid.Row="10" Grid.Column="0" Content="Fill test file:" />
-        <ComboBox Name="AppendTestCombobox" Grid.Row="10" Grid.Column="1"/>
+        <Label Grid.Row="10" Grid.Column="0" Content="PCA:" />
+        <TextBox Name="PCA" Grid.Row="10" Grid.Column="1" Text=""/>
 
         <Label Grid.Row="12" Grid.Column="0" Content="Train set percentage:" 
                ToolTip="Percentage of the data set that will be used for network training"/>

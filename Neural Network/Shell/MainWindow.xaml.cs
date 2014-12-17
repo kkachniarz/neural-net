@@ -43,11 +43,9 @@ namespace Neural_Network
             ProblemTypeCombobox.ItemsSource = Enum.GetValues(typeof(PartIIProblemType)).Cast<PartIIProblemType>();
             ActivationCombobox.ItemsSource = Enum.GetValues(typeof(ActivationFunction)).Cast<ActivationFunction>();
             BiasCombobox.ItemsSource = Enum.GetValues(typeof(YesNo)).Cast<YesNo>();
-            AppendTestCombobox.ItemsSource = Enum.GetValues(typeof(YesNo)).Cast<YesNo>();
 
             ActivationCombobox.SelectedIndex = 0;
             BiasCombobox.SelectedIndex = 0;
-            AppendTestCombobox.SelectedIndex = 1;
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -108,7 +106,7 @@ namespace Neural_Network
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
             int ctsPrevValuesCount = int.Parse(CTSPreviousValues.Text);
 
-            YesNo appendTestFile = (YesNo)AppendTestCombobox.SelectedItem;
+
             PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
 
             if (problemType == PartIIProblemType.CTS)
@@ -128,25 +126,53 @@ namespace Neural_Network
                     network = new NeuralNetwork(activation, bias, layersVal.ToArray());
                     break;
                 case NetworkType.Jordan:
-                    network = new RecursiveNetwork(RecursiveNN.RecursiveNetwork.Type.Jordan,
+                    network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
                     activation, bias, layersVal[0], layersVal[1], layersVal[2]);
                     break;
                 case NetworkType.Elman:
-                    network = new RecursiveNetwork(RecursiveNN.RecursiveNetwork.Type.Elman,
+                    network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
                     activation, bias, layersVal[0], layersVal[1], layersVal[2]);
                     break;
             }
 
-            LearningResult learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
+
+            NormalizeData(network, trainDataSet, testDataSet);
+
+            CheckIfPerformPCA();
+
+            var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
                 iterations, learningRate, momentum);
 
-            if (appendTestFile == YesNo.Yes)
-            {
-                //AppendCSVile(dataSetPath, testCases);
-            }
+            NormalizeDataBack(network, trainDataSet, testDataSet);
 
             ShowNetworkErrorWindow(learningResult);
             Show1DRegression(trainDataSet, testDataSet, true);
+        }
+
+        private void CheckIfPerformPCA()
+        {
+            int dimensionPca;
+
+            if (int.TryParse(this.PCA.Text, out dimensionPca))
+            {
+                LearningNN.PCA.Run(trainDataSet, dimensionPca);
+                LearningNN.PCA.Run(testDataSet, dimensionPca);
+            }
+        }
+
+        private static void NormalizeData(INetwork network, IDataSet trainData, IDataSet testData)
+        {
+            double minValue = Math.Min(trainData.MinValue, testData.MinValue);
+            double maxValue = Math.Max(trainData.MaxValue, testData.MaxValue);
+
+            trainData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
+            testData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
+        }
+
+        private static void NormalizeDataBack(INetwork network, IDataSet trainData, IDataSet testData)
+        {
+            testData.NormalizeBack();
+            trainData.NormalizeBack();
         }
 
         private void InitCTS(List<int> layersVal, float trainSetPercentage, int historyLength)

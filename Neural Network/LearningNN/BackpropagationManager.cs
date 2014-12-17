@@ -18,7 +18,6 @@ namespace LearningNN
             int iterations, double learningRate, double momentum)
         {
             //AssertArguments(trainData, testData, learningRate); // TODO: write assertions
-            NormalizeData(network, trainData, testData);
 
             if (!network.IsInitialized)
             {
@@ -33,8 +32,6 @@ namespace LearningNN
             }
 
             FillOutput(network, testData);
-
-            NormalizeDataBack(network, trainData, testData);
             return learningResult;
         }
 
@@ -77,21 +74,6 @@ namespace LearningNN
             {
                 throw new ArgumentException("leariningRate shoule be possitive.");
             };
-        }
-
-        private static void NormalizeData(INetwork network, IDataSet trainData, IDataSet testData)
-        {
-            double minValue = Math.Min(trainData.MinValue, testData.MinValue);
-            double maxValue = Math.Max(trainData.MaxValue, testData.MaxValue);
-
-            trainData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
-            testData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
-        }
-
-        private static void NormalizeDataBack(INetwork network, IDataSet trainData, IDataSet testData)
-        {
-            testData.NormalizeBack();
-            trainData.NormalizeBack();
         }
 
         private static double CalculateMSEError(INetwork network, IDataSet dataSet)
