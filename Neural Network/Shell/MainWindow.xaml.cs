@@ -11,6 +11,7 @@ using SharpNN.Statistics;
 using Shell.Enums;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -102,7 +103,7 @@ namespace Neural_Network
             int iterations = int.Parse(Iterations.Text);
             double learningRate = LearningRateSlider.Value;
             double momentum = MomentumSlider.Value;
-            float trainSetPercentage = float.Parse(TrainSetPercentage.Text);
+            float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
             int ctsPrevValuesCount = int.Parse(CTSPreviousValues.Text);
