@@ -14,7 +14,7 @@ namespace LearningNN.DataSet
         IEnumerable<Pattern> EnumeratePatterns();
         IDataSet Clone();
         void UpdateExtremums();
-        void Normalize(double minFrom, double maxFrom, DataExtremumsForNetwork extremums);
+        void Normalize(double minTo, double maxTo, DataExtremumsForNetwork extremums);
         void NormalizeBack();
     }
 }

@@ -13,7 +13,7 @@ namespace LearningNN
     public static class PCA
     {
         public static double EPSILON = 0.001d;
-        public static void Run(IDataSet set, int destinationInputLenght)
+        public static void Run(IDataSet set, int destinationInputLenght, double minTo, double maxTo)
         {
             // Preprocessing
             if (set == null
@@ -25,17 +25,6 @@ namespace LearningNN
 
             if (destinationInputLenght >= inputLenght)
                 return;
-
-            // Input normalization
-            double max = set.EnumeratePatterns()
-                .Select(x => Math.Abs(x.Input.AbsoluteMaximum()))
-                .ToList()
-                .Max(x => x);
-
-            foreach (var pattern in set.EnumeratePatterns())
-            {
-                pattern.Input = pattern.Input.Divide(max);
-            }
 
             // Calculating matrix R
             Matrix<double> R = new DenseMatrix(inputLenght, inputLenght);
@@ -77,9 +66,22 @@ namespace LearningNN
             }
 
             // Transforming input vectors
+            double maxFrom = Double.MinValue;
+            double minFrom = Double.MaxValue;
+
             foreach (var pattern in set.EnumeratePatterns())
             {
                 pattern.Input = pattern.Input * pcaTransform;
+
+                maxFrom = Math.Max(maxFrom, pattern.Input.Maximum());
+                minFrom = Math.Min(minFrom, pattern.Input.Minimum());
+            }
+
+            // Normalization
+            var norm = new Normalizor(minFrom, maxFrom, minTo, maxTo);
+            foreach (var pattern in set.EnumeratePatterns())
+            {
+                pattern.Input.MapInplace(norm.Normalize);
             }
         }
 

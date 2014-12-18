@@ -138,9 +138,11 @@ namespace Neural_Network
                     break;
             }
 
-            CheckIfPerformPCA();
-
+            
             NormalizeData(network, trainDataSet, testDataSet);
+
+            CheckIfPerformPCA(network);
+
 
             VSetLearningStrategy vSetStrategy = new VSetLearningStrategy(learningRate, momentum, 0.2f);
             vSetStrategy.IterLimit = maxIterations;
@@ -156,14 +158,14 @@ namespace Neural_Network
             Show1DRegression(trainDataSet, testDataSet, false);
         }
 
-        private void CheckIfPerformPCA()
+        private void CheckIfPerformPCA(INetwork network)
         {
             int dimensionPca;
 
             if (int.TryParse(this.PCA.Text, out dimensionPca))
             {
-                LearningNN.PCA.Run(trainDataSet, dimensionPca);
-                LearningNN.PCA.Run(testDataSet, dimensionPca);
+                LearningNN.PCA.Run(trainDataSet, dimensionPca, network.Activation.MinValue, network.Activation.MaxValue);
+                LearningNN.PCA.Run(testDataSet, dimensionPca, network.Activation.MinValue, network.Activation.MaxValue);
             }
         }
 
