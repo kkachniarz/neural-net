@@ -26,3 +26,13 @@
 *.exe
 *.out
 *.app
+/Neural Network/LearningNN/bin/Debug
+/Neural Network/LearningNN/obj/Debug
+/Neural Network/RecursiveNN/bin/Debug
+/Neural Network/RecursiveNN/obj/Debug
+/Neural Network/SharpNN/bin/Debug
+/Neural Network/SharpNN/obj/Debug
+/Neural Network/Shell/bin/Debug
+/Neural Network/Shell/obj/Debug
+/Neural Network/UnitTests/bin/Debug
+/Neural Network/UnitTests/obj/Debug

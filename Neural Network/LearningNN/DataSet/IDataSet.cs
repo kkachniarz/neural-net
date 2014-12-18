@@ -9,15 +9,12 @@ namespace LearningNN.DataSet
     public interface IDataSet
     {
         int PatternCount { get; }
-        double MinValue { get; }
-        double MaxValue { get; }
-
+        DataExtremumsForNetwork Extremums { get; }
         Pattern GetPatternAt(int i);
         IEnumerable<Pattern> EnumeratePatterns();
         IDataSet Clone();
-
-        void UpdateExtrema();
-        void Normalize(double minFrom, double maxFrom, double minTo, double maxTo);
+        void UpdateExtremums();
+        void Normalize(double minFrom, double maxFrom, DataExtremumsForNetwork extremums);
         void NormalizeBack();
     }
 }
