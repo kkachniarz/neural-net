@@ -44,5 +44,13 @@ namespace LearningNN
             data.AddRange(y.data);
             return new DataExtremum(data);
         }
+
+        public DataExtremum Clone()
+        {
+            var extremum = new DataExtremum(data);
+            extremum.Normalizor = Normalizor;
+
+            return extremum;
+        }
     }
 }

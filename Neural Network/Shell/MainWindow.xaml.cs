@@ -235,7 +235,7 @@ namespace Neural_Network
 
             if (trainSetEndIndex >= allInputs.Count - 1)
             {
-                testDataSet = trainDataSet;
+                testDataSet = trainDataSet.Clone();
             }
             else
             {
