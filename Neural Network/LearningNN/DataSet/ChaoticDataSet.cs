@@ -69,6 +69,7 @@ namespace LearningNN.DataSet
                 clone.patterns.Add(clonedPattern);
             }
 
+            clone.Extremums = this.Extremums.Clone();
             clone.historyLength = this.historyLength;
             clone.startTime = this.startTime;
 

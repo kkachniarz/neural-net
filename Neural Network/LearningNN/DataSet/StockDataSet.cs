@@ -53,6 +53,7 @@ namespace LearningNN.DataSet
             }
 
             clone.startTime = this.startTime;
+            clone.Extremums = this.Extremums.Clone();
 
             return clone;
         }

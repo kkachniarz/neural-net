@@ -29,5 +29,21 @@ namespace LearningNN
 
             return ret;
         }
+
+        public DataExtremumsForNetwork Clone()
+        {
+            var extremums = new DataExtremumsForNetwork();
+            for (int i = 0; i < InputExtremums.Count; i++)
+            {
+                extremums.InputExtremums.Add(InputExtremums[i].Clone());
+            }
+
+            for (int i = 0; i < OutputExtremums.Count; i++)
+            {
+                extremums.OutputExtremums.Add(OutputExtremums[i].Clone());
+            }
+
+            return extremums;
+        }
     }
 }
