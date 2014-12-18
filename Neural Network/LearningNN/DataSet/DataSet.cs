@@ -11,72 +11,112 @@ namespace LearningNN.DataSet
     public abstract class DataSet : IDataSet
     {
         public int PatternCount { get { return patterns.Count; } }
-        public double MinValue { get; protected set; }
-        public double MaxValue { get; protected set; }
+        public DataExtremumsForNetwork Extremums { get; protected set; }
 
         protected IList<Pattern> patterns;
-        protected Normalizor normalizer;
         protected int startTime; // starting time index. Needed for continuity between train and test sets
 
         public DataSet(int startTime)
         {
-            MinValue = double.MaxValue;
-            MaxValue = double.MinValue;
+            Extremums = new DataExtremumsForNetwork();
+
             this.startTime = startTime;
         }
 
-        protected void UpdateExtremaInternal(IList<Vector<double>> vectors)
+        public void UpdateExtremums()
         {
-            vectors = vectors.Where(x => x != null).ToList();
-
-            foreach (var v in vectors)
+            if (Extremums.InputExtremums.Count == 0)
             {
-                double currentMin = v.Min();
-                if (currentMin < MinValue)
+                var modelPattern = patterns.First();
+                for (int i = 0; i < modelPattern.Input.Count; i++)
                 {
-                    MinValue = currentMin;
+                    Extremums.InputExtremums.Add(new DataExtremum(patterns.Select(x => x.Input[i]).ToList()));
                 }
-
-                double currentMax = v.Max();
-                if (currentMax > MaxValue)
+            }
+            else
+            {
+                foreach (var extremum in Extremums.InputExtremums)
                 {
-                    MaxValue = currentMax;
+                    extremum.Update();
+                }
+            }
+
+            if (Extremums.OutputExtremums.Count == 0)
+            {
+                var modelPattern = patterns.First();
+                for (int i = 0; i < modelPattern.IdealOutput.Count; i++)
+                {
+                    Extremums.OutputExtremums.Add(new DataExtremum(patterns.Select(x => x.IdealOutput[i]).ToList()));
+                }
+            }
+            else
+            {
+                foreach (var extremum in Extremums.OutputExtremums)
+                {
+                    extremum.Update();
                 }
             }
         }
 
-        public void UpdateExtrema()
+        public void Normalize(double minTo, double maxTo, DataExtremumsForNetwork extremumus = null)
         {
-            UpdateExtremaInternal(patterns.Select(x => x.Input).ToList());
-            UpdateExtremaInternal(patterns.Select(x => x.IdealOutput).ToList());
-            UpdateExtremaInternal(patterns.Select(x => x.NetworkAnswer).ToList());
-        }
+            if (extremumus == null)
+                extremumus = Extremums;
 
-        public void Normalize(double minFrom, double maxFrom, double minTo, double maxTo)
-        {
-            normalizer = new Normalizor(minFrom, maxFrom, minTo, maxTo);
+            var n = patterns.First().Input.Count;
+            for (int i = 0; i < n; i++)
+            {
+                Extremums.InputExtremums[i].Normalizor = new Normalizor(
+                    extremumus.InputExtremums[i].MinValue,
+                    extremumus.InputExtremums[i].MaxValue,
+                    minTo,
+                    maxTo);
+            }
+
+            n = patterns.First().IdealOutput.Count;
+            for (int i = 0; i < n; i++)
+            {
+                Extremums.OutputExtremums[i].Normalizor = new Normalizor(
+                    extremumus.OutputExtremums[i].MinValue,
+                    extremumus.OutputExtremums[i].MaxValue,
+                    minTo,
+                    maxTo);
+            }
 
             foreach (Pattern p in patterns)
             {
-                p.Input.MapInplace(x => normalizer.Normalize(x));
-                p.IdealOutput.MapInplace(x => normalizer.Normalize(x));
+                for (int i = 0; i < p.Input.Count; i++)
+                {
+                    p.Input[i] = Extremums.InputExtremums[i].Normalizor.Normalize(p.Input[i]);
+                }
+
+                for (int i = 0; i < p.IdealOutput.Count; i++)
+                {
+                    p.IdealOutput[i] = Extremums.OutputExtremums[i].Normalizor.Normalize(p.IdealOutput[i]);
+                }
             }
         }
 
         public void NormalizeBack()
         {
-            if (normalizer == null)
-            {
-                throw new ArgumentException("Cannot normalize back. No normalization has been performed.");
-            }
-
             foreach (Pattern p in patterns)
             {
-                p.Input.MapInplace(x => normalizer.NormalizeBack(x));
-                p.IdealOutput.MapInplace(x => normalizer.NormalizeBack(x));
+                for (int i = 0; i < p.Input.Count; i++)
+                {
+                    p.Input[i] = Extremums.InputExtremums[i].Normalizor.NormalizeBack(p.Input[i]);
+                }
+
+                for (int i = 0; i < p.IdealOutput.Count; i++)
+                {
+                    p.IdealOutput[i] = Extremums.OutputExtremums[i].Normalizor.NormalizeBack(p.IdealOutput[i]);
+                }
+
                 if (p.NetworkAnswer != null)
                 {
-                    p.NetworkAnswer.MapInplace(x => normalizer.NormalizeBack(x));
+                    for (int i = 0; i < p.NetworkAnswer.Count; i++)
+                    {
+                        p.NetworkAnswer[i] = Extremums.OutputExtremums[i].Normalizor.NormalizeBack(p.NetworkAnswer[i]);
+                    }
                 }
             }
         }

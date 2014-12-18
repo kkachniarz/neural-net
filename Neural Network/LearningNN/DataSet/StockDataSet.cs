@@ -16,7 +16,7 @@ namespace LearningNN.DataSet
             patterns = new List<Pattern>(inputs.Count);
 
             AddPatterns(inputs, outputs);
-            UpdateExtrema();
+            UpdateExtremums();
         }
 
         private StockDataSet(int startTime) : base(startTime)
@@ -52,9 +52,6 @@ namespace LearningNN.DataSet
                 clone.patterns.Add(clonedPattern);
             }
 
-            clone.normalizer = this.normalizer;
-            clone.MinValue = this.MinValue;
-            clone.MaxValue = this.MaxValue;
             clone.startTime = this.startTime;
 
             return clone;

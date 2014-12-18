@@ -21,10 +21,11 @@ namespace LearningNN.DataSet
             patterns = new List<Pattern>(chaoticSeries.Count - prevValuesCount);
 
             AddPatterns(chaoticSeries, prevValuesCount);
-            UpdateExtrema();
+            UpdateExtremums();
         }
 
-        private ChaoticDataSet(int startTime) : base(startTime)
+        private ChaoticDataSet(int startTime)
+            : base(startTime)
         {
         }
 
@@ -47,12 +48,12 @@ namespace LearningNN.DataSet
 
         private void AssertCTSValid(IList<DenseVector> cts, int historyLength)
         {
-            if(cts.Count <= historyLength)
+            if (cts.Count <= historyLength)
             {
                 throw new ArgumentException("Too few patterns for the history length specified");
             }
 
-            if(cts[0].Count != 1)
+            if (cts[0].Count != 1)
             {
                 throw new ArgumentException("Chaotic time series must consist of vectors of length 1");
             }
@@ -62,16 +63,13 @@ namespace LearningNN.DataSet
         {
             ChaoticDataSet clone = new ChaoticDataSet(this.startTime);
             clone.patterns = new List<Pattern>();
-            foreach(Pattern p in this.patterns)
+            foreach (Pattern p in this.patterns)
             {
                 Pattern clonedPattern = p.Clone();
                 clone.patterns.Add(clonedPattern);
             }
 
             clone.historyLength = this.historyLength;
-            clone.normalizer = this.normalizer;
-            clone.MinValue = this.MinValue;
-            clone.MaxValue = this.MaxValue;
             clone.startTime = this.startTime;
 
             return clone;
