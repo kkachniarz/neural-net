@@ -62,6 +62,10 @@
     <Compile Include="CasesData.cs" />
     <Compile Include="DataSet\ChaoticDataSet.cs" />
     <Compile Include="DataSet\DataSet.cs" />
+    <Compile Include="ChaoticDataSet.cs" />
+    <Compile Include="DataExtremum.cs" />
+    <Compile Include="DataExtremumsForNetwork.cs" />
+    <Compile Include="DataSet.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="DataSet\IDataSet.cs" />
     <Compile Include="LearningStrategy\ILearningStrategy.cs" />

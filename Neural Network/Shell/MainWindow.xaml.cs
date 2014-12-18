@@ -163,14 +163,10 @@ namespace Neural_Network
 
         private static void NormalizeData(INetwork network, IDataSet trainData, IDataSet testData)
         {
-            trainData.UpdateExtrema();
-            testData.UpdateExtrema();
+            var extremums = DataExtremumsForNetwork.Merge(trainData.Extremums, testData.Extremums);
 
-            double minValue = Math.Min(trainData.MinValue, testData.MinValue);
-            double maxValue = Math.Max(trainData.MaxValue, testData.MaxValue);
-
-            trainData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
-            testData.Normalize(minValue, maxValue, network.Activation.MinValue, network.Activation.MaxValue);
+            trainData.Normalize(network.Activation.MinValue, network.Activation.MaxValue, extremums);
+            testData.Normalize(network.Activation.MinValue, network.Activation.MaxValue, extremums);
         }
 
         private static void NormalizeDataBack(INetwork network, IDataSet trainData, IDataSet testData)
