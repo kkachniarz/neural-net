@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 
-namespace LearningNN
+namespace LearningNN.DataSet
 {
     public abstract class DataSet : IDataSet
     {

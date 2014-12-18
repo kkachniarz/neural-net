@@ -60,19 +60,19 @@
   <ItemGroup>
     <Compile Include="BackpropagationManager.cs" />
     <Compile Include="CasesData.cs" />
-    <Compile Include="ChaoticDataSet.cs" />
-    <Compile Include="DataSet.cs" />
+    <Compile Include="DataSet\ChaoticDataSet.cs" />
+    <Compile Include="DataSet\DataSet.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="IDataSet.cs" />
-    <Compile Include="ILearningStrategy.cs" />
-    <Compile Include="IterationLearningStrategy.cs" />
-    <Compile Include="LearningStrategy.cs" />
+    <Compile Include="DataSet\IDataSet.cs" />
+    <Compile Include="LearningStrategy\ILearningStrategy.cs" />
+    <Compile Include="LearningStrategy\IterationLearningStrategy.cs" />
+    <Compile Include="LearningStrategy\LearningStrategy.cs" />
     <Compile Include="Normalizor.cs" />
     <Compile Include="Pattern.cs" />
     <Compile Include="PCA.cs" />
     <Compile Include="ProblemType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StockDataSet.cs" />
+    <Compile Include="DataSet\StockDataSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RecursiveNN\RecursiveNN.csproj">

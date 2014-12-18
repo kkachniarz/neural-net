@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.LinearAlgebra.Factorization;
+using LearningNN.DataSet;
 
 namespace LearningNN
 {

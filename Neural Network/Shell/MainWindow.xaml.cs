@@ -1,4 +1,6 @@
 ﻿using LearningNN;
+using LearningNN.DataSet;
+using LearningNN.LearningStrategy;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Microsoft.Win32;

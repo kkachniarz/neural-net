@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using RecursiveNN;
 using MathNet.Numerics.LinearAlgebra;
+using LearningNN.LearningStrategy;
+using LearningNN.DataSet;
 
 namespace LearningNN
 {
