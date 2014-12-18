@@ -35,6 +35,7 @@ namespace Neural_Network
         List<DenseVector> csvLines;
         IDataSet testDataSet;
         IDataSet trainDataSet;
+        ILearningStrategy learningStrategy;
         string dataSetPath;
 
         public MainWindow()
@@ -100,14 +101,14 @@ namespace Neural_Network
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
             IActivation activation = ((ActivationFunction)ActivationCombobox.SelectedItem == ActivationFunction.Bipolar) ? 
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
-            int iterations = int.Parse(Iterations.Text);
+            int maxIterations = int.Parse(MaxIterations.Text);
+            int badIterations = BadIterations.Text == ""? maxIterations : int.Parse(BadIterations.Text); // ignore or use
             double learningRate = LearningRateSlider.Value;
             double momentum = MomentumSlider.Value;
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
             int ctsPrevValuesCount = int.Parse(CTSPreviousValues.Text);
-
 
             PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
 
@@ -140,7 +141,12 @@ namespace Neural_Network
             CheckIfPerformPCA();
 
             NormalizeData(network, trainDataSet, testDataSet);
-            ILearningStrategy learningStrategy = new IterationLearningStrategy(learningRate, momentum, iterations);
+
+            VSetLearningStrategy vSetStrategy = new VSetLearningStrategy(learningRate, momentum, 0.2f);
+            vSetStrategy.IterLimit = maxIterations;
+            vSetStrategy.MaxBadIterations = badIterations;
+            learningStrategy = vSetStrategy;
+
             var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
                 learningStrategy);
 
@@ -190,6 +196,7 @@ namespace Neural_Network
             {
                 layersVal.Insert(0, historyLength); // network needs as many inputs as many historical values we feed it.
             }
+
             int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
             List<DenseVector> chaoticValues = csvLines; // no need for further parsing
 

@@ -67,6 +67,7 @@
     <Compile Include="LearningStrategy\ILearningStrategy.cs" />
     <Compile Include="LearningStrategy\IterationLearningStrategy.cs" />
     <Compile Include="LearningStrategy\LearningStrategy.cs" />
+    <Compile Include="LearningStrategy\VSetLearningStrategy.cs" />
     <Compile Include="Normalizor.cs" />
     <Compile Include="Pattern.cs" />
     <Compile Include="PCA.cs" />

@@ -39,7 +39,7 @@ namespace LearningNN.LearningStrategy
 
         protected abstract double RunEpoch();
 
-        protected static double CalculateMSEError(INetwork network, IDataSet dataSet)
+        protected virtual double CalculateMSEError(INetwork network, IDataSet dataSet)
         {
             double mseSum = 0.0;
             foreach (Pattern p in dataSet.EnumeratePatterns())

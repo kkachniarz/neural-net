@@ -60,6 +60,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="15"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -91,37 +92,40 @@
         <Label Grid.Row="6" Grid.Column="0" Content="Activation:" />
         <ComboBox Name="ActivationCombobox" Grid.Row="6" Grid.Column="1"/>
 
-        <Label Grid.Row="7" Grid.Column="0" Content="Iterations:" />
-        <TextBox Name="Iterations" Grid.Row="7" Grid.Column="1" Text="250"/>
+        <Label Grid.Row="7" Grid.Column="0" Content="Max epochs:" />
+        <TextBox Name="MaxIterations" Grid.Row="7" Grid.Column="1" Text="500"/>
 
-        <Label Grid.Row="8" Grid.Column="0" Content="Learning rate:" />
-        <Slider Name="LearningRateSlider" Grid.Row="8" Grid.Column="1" 
+        <Label Grid.Row="8" Grid.Column="0" Content="Bad epochs:" />
+        <TextBox Name="BadIterations" Grid.Row="8" Grid.Column="1" Text="5"/>
+
+        <Label Grid.Row="9" Grid.Column="0" Content="Learning rate:" />
+        <Slider Name="LearningRateSlider" Grid.Row="9" Grid.Column="1" 
                 Maximum="1" Minimum="0.01" Value="0.14" TickFrequency="0.1" SmallChange="0.01">
             <Slider.ToolTip>
                 <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}"/>
             </Slider.ToolTip>
         </Slider>
 
-        <Label Grid.Row="9" Grid.Column="0" Content="Momentum:" />
-        <Slider Name="MomentumSlider" Grid.Row="9" Grid.Column="1" 
+        <Label Grid.Row="10" Grid.Column="0" Content="Momentum:" />
+        <Slider Name="MomentumSlider" Grid.Row="10" Grid.Column="1" 
                 Maximum="1" Minimum="0.00" Value="0.2" TickFrequency="0.1" SmallChange="0.01">
             <Slider.ToolTip>
                 <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}"/>
             </Slider.ToolTip>
         </Slider>
 
-        <Label Grid.Row="10" Grid.Column="0" Content="PCA:" />
-        <TextBox Name="PCA" Grid.Row="10" Grid.Column="1" Text=""/>
+        <Label Grid.Row="11" Grid.Column="0" Content="PCA:" />
+        <TextBox Name="PCA" Grid.Row="11" Grid.Column="1" Text=""/>
 
-        <Label Grid.Row="12" Grid.Column="0" Content="Train set percentage:" 
+        <Label Grid.Row="13" Grid.Column="0" Content="Train set percentage:" 
                ToolTip="Percentage of the data set that will be used for network training"/>
-        <TextBox Name="TrainSetPercentage" Grid.Row="12" Grid.Column="1" Text="0.7"/>
+        <TextBox Name="TrainSetPercentage" Grid.Row="13" Grid.Column="1" Text="0.7"/>
 
-        <Button Grid.Row="13" Grid.Column="0" Content="Load data" Click="ReadDataSet"/>
-        <Label Name="TrainSetLabel" Grid.Row="13" Grid.Column="1" 
+        <Button Grid.Row="14" Grid.Column="0" Content="Load data" Click="ReadDataSet"/>
+        <Label Name="TrainSetLabel" Grid.Row="14" Grid.Column="1" 
                Content="..."/>
 
-        <Button Grid.Row="15" Grid.Column="0" Name="StartButton" Click="StartButtonClick" Content="START"
+        <Button Grid.Row="16" Grid.Column="0" Name="StartButton" Click="StartButtonClick" Content="START"
                 Grid.ColumnSpan="2" Width="100" FontWeight="Bold" IsEnabled="False"/>
     </Grid>
 </Window>

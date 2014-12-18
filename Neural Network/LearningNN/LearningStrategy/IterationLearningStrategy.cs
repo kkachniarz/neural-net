@@ -12,7 +12,6 @@ namespace LearningNN.LearningStrategy
     {
         private int maxIterations;
         private int currentIteration = 0;
-        private int iterations;
 
         public IterationLearningStrategy(double learningRate, double momentum, int maxIterations)
             : base(learningRate, momentum)
