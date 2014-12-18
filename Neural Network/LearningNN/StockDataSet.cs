@@ -16,8 +16,7 @@ namespace LearningNN
             patterns = new List<Pattern>(inputs.Count);
 
             AddPatterns(inputs, outputs);
-            UpdateExtrema(inputs);
-            UpdateExtrema(outputs);
+            UpdateExtrema();
         }
 
         private StockDataSet(int startTime) : base(startTime)

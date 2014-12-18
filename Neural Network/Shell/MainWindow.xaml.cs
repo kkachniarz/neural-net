@@ -135,10 +135,9 @@ namespace Neural_Network
                     break;
             }
 
+            CheckIfPerformPCA();
 
             NormalizeData(network, trainDataSet, testDataSet);
-
-            CheckIfPerformPCA();
 
             var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
                 iterations, learningRate, momentum);
@@ -146,7 +145,7 @@ namespace Neural_Network
             NormalizeDataBack(network, trainDataSet, testDataSet);
 
             ShowNetworkErrorWindow(learningResult);
-            Show1DRegression(trainDataSet, testDataSet, true);
+            Show1DRegression(trainDataSet, testDataSet, false);
         }
 
         private void CheckIfPerformPCA()
@@ -162,6 +161,9 @@ namespace Neural_Network
 
         private static void NormalizeData(INetwork network, IDataSet trainData, IDataSet testData)
         {
+            trainData.UpdateExtrema();
+            testData.UpdateExtrema();
+
             double minValue = Math.Min(trainData.MinValue, testData.MinValue);
             double maxValue = Math.Max(trainData.MaxValue, testData.MaxValue);
 
@@ -177,7 +179,15 @@ namespace Neural_Network
 
         private void InitCTS(List<int> layersVal, float trainSetPercentage, int historyLength)
         {
-            layersVal.Insert(0, historyLength); // network needs as many inputs as many historical values we feed it.
+            int dimensionPca;
+            if (int.TryParse(this.PCA.Text, out dimensionPca))
+            {
+                layersVal.Insert(0, Math.Min(dimensionPca, historyLength));
+            }
+            else
+            {
+                layersVal.Insert(0, historyLength); // network needs as many inputs as many historical values we feed it.
+            }
             int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
             List<DenseVector> chaoticValues = csvLines; // no need for further parsing
 
@@ -197,12 +207,23 @@ namespace Neural_Network
 
         private void InitStock(List<int> layersVal, float trainSetPercentage, int outputCount)
         {
-            int inputCount = csvLines[0].Count - outputCount; // this way we can calculate number of inputs
-            layersVal.Insert(0, inputCount);
+            int dimensionPca;
+            int dispalyInputCount = csvLines[0].Count - outputCount; // this way we can calculate number of display inputs
+
+            if (int.TryParse(this.PCA.Text, out dimensionPca))
+            {
+                layersVal.Insert(0, Math.Min(dimensionPca, dispalyInputCount));
+            }
+            else
+            {
+                layersVal.Insert(0, dispalyInputCount);
+            }
+            
+            
             int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
 
-            List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, inputCount)).ToList();
-            List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(inputCount, outputCount)).ToList();
+            List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, dispalyInputCount)).ToList();
+            List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(dispalyInputCount, outputCount)).ToList();
 
             trainDataSet = new StockDataSet(allInputs.ExtractList(0, trainSetEndIndex), 
                 allOutputs.ExtractList(0, trainSetEndIndex), 0);

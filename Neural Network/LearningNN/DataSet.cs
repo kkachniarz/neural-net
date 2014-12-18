@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace LearningNN
 {
@@ -24,9 +25,11 @@ namespace LearningNN
             this.startTime = startTime;
         }
 
-        protected void UpdateExtrema(IList<DenseVector> vectors)
+        protected void UpdateExtremaInternal(IList<Vector<double>> vectors)
         {
-            foreach (DenseVector v in vectors)
+            vectors = vectors.Where(x => x != null).ToList();
+
+            foreach (var v in vectors)
             {
                 double currentMin = v.Min();
                 if (currentMin < MinValue)
@@ -40,6 +43,13 @@ namespace LearningNN
                     MaxValue = currentMax;
                 }
             }
+        }
+
+        public void UpdateExtrema()
+        {
+            UpdateExtremaInternal(patterns.Select(x => x.Input).ToList());
+            UpdateExtremaInternal(patterns.Select(x => x.IdealOutput).ToList());
+            UpdateExtremaInternal(patterns.Select(x => x.NetworkAnswer).ToList());
         }
 
         public void Normalize(double minFrom, double maxFrom, double minTo, double maxTo)

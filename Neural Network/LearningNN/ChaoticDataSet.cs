@@ -21,7 +21,7 @@ namespace LearningNN
             patterns = new List<Pattern>(chaoticSeries.Count - prevValuesCount);
 
             AddPatterns(chaoticSeries, prevValuesCount);
-            UpdateExtrema(chaoticSeries);
+            UpdateExtrema();
         }
 
         private ChaoticDataSet(int startTime) : base(startTime)
