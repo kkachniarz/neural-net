@@ -138,9 +138,9 @@ namespace Neural_Network
             CheckIfPerformPCA();
 
             NormalizeData(network, trainDataSet, testDataSet);
-
+            ILearningStrategy learningStrategy = new IterationLearningStrategy(learningRate, momentum, iterations);
             var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
-                iterations, learningRate, momentum);
+                learningStrategy);
 
             NormalizeDataBack(network, trainDataSet, testDataSet);
 

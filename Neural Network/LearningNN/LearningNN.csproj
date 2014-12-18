@@ -64,6 +64,9 @@
     <Compile Include="DataSet.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IDataSet.cs" />
+    <Compile Include="ILearningStrategy.cs" />
+    <Compile Include="IterationLearningStrategy.cs" />
+    <Compile Include="LearningStrategy.cs" />
     <Compile Include="Normalizor.cs" />
     <Compile Include="Pattern.cs" />
     <Compile Include="PCA.cs" />
