@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace LearningNN.LearningStrategy
 {
+    [Obsolete ("VSetLearningStrategy is much more robust andis recommended instead")]
     public class IterationLearningStrategy : LearningStrategy
     {
         private int maxIterations;

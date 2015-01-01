@@ -98,13 +98,12 @@ namespace Neural_Network
                 layersVal.Add(int.Parse(layer));
             }
 
+            LearningSettings lSettings = GetLearningSettings();
+
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
             IActivation activation = ((ActivationFunction)ActivationCombobox.SelectedItem == ActivationFunction.Bipolar) ? 
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
-            int maxIterations = int.Parse(MaxIterations.Text);
-            int badIterations = BadIterations.Text == ""? maxIterations : int.Parse(BadIterations.Text); // ignore or use
-            double learningRate = double.Parse(LearningRate.Text);
-            double momentum = double.Parse(Momentum.Text);
+
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
@@ -143,11 +142,7 @@ namespace Neural_Network
 
             CheckIfPerformPCA(network);
 
-
-            VSetLearningStrategy vSetStrategy = new VSetLearningStrategy(learningRate, momentum, 0.2f);
-            vSetStrategy.IterLimit = maxIterations;
-            vSetStrategy.MaxBadIterations = badIterations;
-            learningStrategy = vSetStrategy;
+            learningStrategy = new VSetLearningStrategy(lSettings);
 
             var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
                 learningStrategy, this);
@@ -162,6 +157,18 @@ namespace Neural_Network
             }
 
             Show1DRegression(trainDataSet, testDataSet, plotAgainstInput);
+        }
+
+        private LearningSettings GetLearningSettings()
+        {
+            LearningSettings learnSettings = new LearningSettings();
+            learnSettings.MaxIterations = int.Parse(MaxIterations.Text);
+            learnSettings.BadIterations = BadIterations.Text == "" ? learnSettings.MaxIterations : int.Parse(BadIterations.Text);
+            learnSettings.LearningRate = double.Parse(LearningRate.Text);
+            learnSettings.Momentum = double.Parse(Momentum.Text);
+            learnSettings.ValidationSetSize = 0.2f;
+
+            return learnSettings;
         }
 
         private void CheckIfPerformPCA(INetwork network)

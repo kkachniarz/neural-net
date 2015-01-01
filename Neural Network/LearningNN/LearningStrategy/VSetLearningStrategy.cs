@@ -27,12 +27,12 @@ namespace LearningNN.LearningStrategy
         private object savedWeights = null;
         private List<object> debugSavedWeights = new List<object>();
 
-        public VSetLearningStrategy(double learningRate, double momentum, float vSetSize)
-            : base(learningRate, momentum)
+        public VSetLearningStrategy(LearningSettings lSettings)
+            : base(lSettings.LearningRate, lSettings.Momentum)
         {
-            this.vSetPercentage = vSetSize;
-            this.MaxBadIterations = 5;
-            IterLimit = 50000;
+            this.vSetPercentage = lSettings.ValidationSetSize;
+            this.MaxBadIterations = lSettings.BadIterations;
+            this.IterLimit = lSettings.MaxIterations;
         }
 
         public override List<double> Train(INetwork network, IDataSet data, ILearningStatus statusHolder)
@@ -43,7 +43,7 @@ namespace LearningNN.LearningStrategy
 
         protected override double RunEpoch()
         {
-            for (int i = vSetEnd; i < dataSet.PatternCount; i++) // train set
+            for (int i = vSetEnd; i < dataSet.PatternCount; i++) // train set (without validation set)
             {
                 Pattern pattern = dataSet.GetPatternAt(i);
                 Vector<double> networkAnswer = network.ComputeOutput(pattern.Input);
@@ -75,7 +75,7 @@ namespace LearningNN.LearningStrategy
                 || iteration > IterLimit)
             {
                 finished = true;
-                // restore network to the best state (before the bad iteration streak)
+                // restore the best weights
                 network.RestoreWeights(savedWeights);
                 return CalculateMSEValidation();
             }
