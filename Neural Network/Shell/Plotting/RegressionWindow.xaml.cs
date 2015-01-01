@@ -40,12 +40,16 @@ namespace Neural_Network.Plotting
 
         private void SetUpModel(List<RegressionPoint> trainingPoints, List<RegressionPoint> idealAnswer, List<RegressionPoint> networkAnswer)
         {
-            var series1 = new ScatterSeries { Title = "Training data", MarkerType = MarkerType.Triangle, MarkerSize = 2.0, MarkerFill = OxyColors.DarkGray };
-            trainingPoints.ForEach(x => series1.Points.Add(CreateScatterPoint(x)));
-            var series2 = new ScatterSeries { Title = "Ideal answer", MarkerType = MarkerType.Circle, MarkerSize = 2.0, MarkerFill = OxyColors.Black };
-            idealAnswer.ForEach(x => series2.Points.Add(CreateScatterPoint(x)));
-            var series3 = new ScatterSeries { Title = "Network answer", MarkerType = MarkerType.Diamond, MarkerSize = 4.0, MarkerFill = OxyColors.Red };
-            networkAnswer.ForEach(x => series3.Points.Add(CreateScatterPoint(x)));
+            trainingPoints.Sort((a, b) => Math.Sign(a.X - b.X));
+            idealAnswer.Sort((a, b) => Math.Sign(a.X - b.X));
+            networkAnswer.Sort((a, b) => Math.Sign(a.X - b.X));
+
+            var series1 = new LineSeries { Title = "Training data", MarkerType = MarkerType.Triangle, MarkerSize = 1.0, MarkerFill = OxyColors.DarkGray };
+            trainingPoints.ForEach(x => series1.Points.Add(CreateDataPoint(x)));
+            var series2 = new LineSeries { Title = "Ideal answer", MarkerType = MarkerType.Circle, MarkerSize = 1.0, MarkerFill = OxyColors.Black };
+            idealAnswer.ForEach(x => series2.Points.Add(CreateDataPoint(x)));
+            var series3 = new LineSeries { Title = "Network answer", MarkerType = MarkerType.Diamond, MarkerSize = 1.0, MarkerFill = OxyColors.Red };
+            networkAnswer.ForEach(x => series3.Points.Add(CreateDataPoint(x)));
 
             double minX = Math.Min(trainingPoints.Min(p => p.X), networkAnswer.Concat(idealAnswer).Min(p => p.X));
             double maxX = Math.Max(trainingPoints.Max(p => p.X), networkAnswer.Concat(idealAnswer).Max(p => p.X));
