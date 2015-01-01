@@ -59,21 +59,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackpropagationManager.cs" />
-    <Compile Include="CasesData.cs" />
+    <Compile Include="DataSet\CasesData.cs" />
     <Compile Include="DataSet\ChaoticDataSet.cs" />
     <Compile Include="DataSet\DataSet.cs" />
-    <Compile Include="DataExtremum.cs" />
-    <Compile Include="DataExtremumsForNetwork.cs" />
+    <Compile Include="DataSet\DataExtremum.cs" />
+    <Compile Include="DataSet\DataExtremumsForNetwork.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="DataSet\IDataSet.cs" />
-    <Compile Include="ILearningStatus.cs" />
-    <Compile Include="LearningSettings.cs" />
-    <Compile Include="LearningStrategy\ILearningStrategy.cs" />
-    <Compile Include="LearningStrategy\IterationLearningStrategy.cs" />
-    <Compile Include="LearningStrategy\LearningStrategy.cs" />
-    <Compile Include="LearningStrategy\VSetLearningStrategy.cs" />
+    <Compile Include="Learning\ILearningStatus.cs" />
+    <Compile Include="Learning\LearningSettings.cs" />
+    <Compile Include="Learning\ILearningStrategy.cs" />
+    <Compile Include="Learning\IterationLearningStrategy.cs" />
+    <Compile Include="Learning\LearningStrategy.cs" />
+    <Compile Include="Learning\VSetLearningStrategy.cs" />
     <Compile Include="Normalizor.cs" />
-    <Compile Include="Pattern.cs" />
+    <Compile Include="DataSet\Pattern.cs" />
     <Compile Include="PCA.cs" />
     <Compile Include="ProblemType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

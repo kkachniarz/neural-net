@@ -41,7 +41,7 @@ namespace Neural_Network.Plotting
             linearAxis1.Position = AxisPosition.Left;
             linearAxis1.Minimum = 0;
             linearAxis1.Maximum = trainingSetErrors.Max() * 1.1 * SCALE;
-            linearAxis1.Title = "Error";
+            linearAxis1.Title = string.Format("Error x {0}", SCALE);
             plotModel.Axes.Add(linearAxis1);
             var linearAxis2 = new LinearAxis();
             linearAxis2.Position = AxisPosition.Bottom;

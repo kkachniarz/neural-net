@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics.LinearAlgebra;
+﻿using LearningNN.DataSet;
+using MathNet.Numerics.LinearAlgebra;
 using SharpNN;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LearningNN.LearningStrategy
+namespace LearningNN.Learning
 {
     [Obsolete ("VSetLearningStrategy is much more robust andis recommended instead")]
     public class IterationLearningStrategy : LearningStrategy
