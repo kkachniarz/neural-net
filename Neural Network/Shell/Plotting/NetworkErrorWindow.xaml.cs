@@ -23,6 +23,7 @@ namespace Neural_Network.Plotting
     /// </summary>
     public partial class NetworkErrorWindow : Window
     {
+        private const double SCALE = 1000.0;
         private PlotModel plotModel;
 
         public NetworkErrorWindow(List<double> trainingSetErrors, List<double> validationSetErorrs = null)
@@ -39,7 +40,7 @@ namespace Neural_Network.Plotting
             linearAxis1.TickStyle = TickStyle.Outside;
             linearAxis1.Position = AxisPosition.Left;
             linearAxis1.Minimum = 0;
-            linearAxis1.Maximum = trainingSetErrors.Max()*1.1;
+            linearAxis1.Maximum = trainingSetErrors.Max() * 1.1 * SCALE;
             linearAxis1.Title = "Error";
             plotModel.Axes.Add(linearAxis1);
             var linearAxis2 = new LinearAxis();
@@ -67,7 +68,7 @@ namespace Neural_Network.Plotting
             List<DataPoint> points = new List<DataPoint>();
             for (int i = 0; i < mseHistory.Count; i++)
             {
-                points.Add(new DataPoint(i, mseHistory[i]));
+                points.Add(new DataPoint(i, mseHistory[i] * SCALE));
             }
             return points;
         }

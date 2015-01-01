@@ -66,6 +66,7 @@
     <Compile Include="DataExtremumsForNetwork.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="DataSet\IDataSet.cs" />
+    <Compile Include="ILearningStatus.cs" />
     <Compile Include="LearningStrategy\ILearningStrategy.cs" />
     <Compile Include="LearningStrategy\IterationLearningStrategy.cs" />
     <Compile Include="LearningStrategy\LearningStrategy.cs" />

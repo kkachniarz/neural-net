@@ -3,6 +3,7 @@ using MathNet.Numerics.LinearAlgebra;
 using SharpNN;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,10 @@ namespace LearningNN.LearningStrategy
 
         private double currentError = 1.0;
         private double previousError = 1.0;
+        private double lowestError = double.MaxValue;
+
+        private object savedWeights = null;
+        private List<object> debugSavedWeights = new List<object>();
 
         public VSetLearningStrategy(double learningRate, double momentum, float vSetSize)
             : base(learningRate, momentum)
@@ -30,10 +35,10 @@ namespace LearningNN.LearningStrategy
             IterLimit = 50000;
         }
 
-        public override List<double> Train(INetwork network, IDataSet data)
+        public override List<double> Train(INetwork network, IDataSet data, ILearningStatus statusHolder)
         {
             vSetEnd = (int)(vSetPercentage * data.PatternCount);
-            return base.Train(network, data);
+            return base.Train(network, data, statusHolder);
         }
 
         protected override double RunEpoch()
@@ -49,6 +54,13 @@ namespace LearningNN.LearningStrategy
             }
 
             currentError = CalculateMSEValidation();
+            debugSavedWeights.Add(network.SaveWeights());
+
+            if(currentError < lowestError)
+            {
+                lowestError = currentError;
+                savedWeights = network.SaveWeights();
+            }
 
             if (currentError > previousError)
             {
@@ -62,12 +74,20 @@ namespace LearningNN.LearningStrategy
             if (badIterations > MaxBadIterations
                 || iteration > IterLimit)
             {
-                finished = true; // optimally, network should be restored to a previous state (serialization?)
+                finished = true;
+                // restore network to the best state (before the bad iteration streak)
+                network.RestoreWeights(savedWeights);
+                return CalculateMSEValidation();
             }
 
             previousError = currentError;
             iteration++;
-            return CalculateMSEValidation(); // return validation set error
+            return currentError;
+        }
+
+        protected override void UpdateStatus()
+        {
+            statusHolder.SetText(string.Format("iter: {0}, error: {1}", iteration, errorHistory[errorHistory.Count - 1]));
         }
 
         private double CalculateMSEValidation()

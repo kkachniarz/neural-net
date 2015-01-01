@@ -3,6 +3,7 @@ using SharpNN;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,5 +22,9 @@ namespace SharpNN
         void CalculateAndPropagateError(Vector<double> modelAnswer);
 
         void ImproveWeights(double learningRate, double momentum);
+
+        object SaveWeights();
+
+        void RestoreWeights(object savedWeights);
     }
 }

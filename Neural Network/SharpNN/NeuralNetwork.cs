@@ -246,12 +246,56 @@ namespace SharpNN
             }
         }
 
-
         public void ImproveWeights(double learningRate, double momentum)
         {
             for (int k = 1; k < LayerCount; k++)
             {
                 ((WeightedLayer)LayerAt(k)).ImproveWeights(learningRate, momentum);
+            }
+        }
+
+        public object SaveWeights()
+        {
+            SavedWeights save = new SavedWeights(weightedLayers.Count);
+            for(int i = 0; i < weightedLayers.Count; i++)
+            {
+                save.WeightMatrices[i] = weightedLayers[i].IncomingWeights.Clone();
+                if(weightedLayers[i].HasBias)
+                {
+                    save.Biases[i] = weightedLayers[i].BiasWeights.Clone();
+                }
+            }
+
+            return save;
+        }
+
+        public void RestoreWeights(object savedWeights)
+        {
+            SavedWeights save = (SavedWeights)savedWeights;
+            if(save.WeightMatrices.Length != weightedLayers.Count)
+            {
+                throw new ArgumentException("The number of saved matrices is different than the number of weight layers");
+            }
+
+            for(int i = 0; i < weightedLayers.Count; i++)
+            {
+                weightedLayers[i].IncomingWeights = save.WeightMatrices[i].Clone();
+                if (weightedLayers[i].HasBias)
+                {
+                    weightedLayers[i].BiasWeights = save.Biases[i].Clone();
+                }
+            }
+        }
+
+        private class SavedWeights
+        {
+            public Matrix<double>[] WeightMatrices;
+            public Vector<double>[] Biases;
+
+            public SavedWeights(int count)
+            {
+                WeightMatrices = new Matrix<double>[count];
+                Biases = new Vector<double>[count];
             }
         }
     }

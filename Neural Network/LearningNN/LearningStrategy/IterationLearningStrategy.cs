@@ -37,5 +37,10 @@ namespace LearningNN.LearningStrategy
 
             return CalculateMSEError(network, dataSet);
         }
+
+        protected override void UpdateStatus()
+        {
+            statusHolder.SetText(string.Format("iter: {0}, error: {1}", currentIteration, errorHistory[errorHistory.Count - 1]));
+        }
     }
 }

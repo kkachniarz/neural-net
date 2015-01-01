@@ -17,6 +17,8 @@ namespace LearningNN.LearningStrategy
         protected bool finished;
         protected INetwork network;
         protected IDataSet dataSet;
+        protected ILearningStatus statusHolder;
+        protected List<double> errorHistory;
 
         public LearningStrategy(double learningRate, double momentum)
         {
@@ -24,18 +26,23 @@ namespace LearningNN.LearningStrategy
             this.Momentum = momentum;
         }
 
-        public virtual List<double> Train(INetwork network, IDataSet data)
+        public virtual List<double> Train(INetwork network, IDataSet data, ILearningStatus statusHolder)
         {
             this.network = network;
             this.dataSet = data;
-            List<double> errorHistory = new List<double>();
+            this.statusHolder = statusHolder;
+
+            errorHistory = new List<double>();
             while(!finished)
             {
                 errorHistory.Add(RunEpoch());
+                UpdateStatus();
             }
 
             return errorHistory;
         }
+
+        protected abstract void UpdateStatus();
 
         protected abstract double RunEpoch();
 

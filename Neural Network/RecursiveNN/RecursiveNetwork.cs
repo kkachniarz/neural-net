@@ -87,6 +87,27 @@ namespace RecursiveNN
             Elman,
         }
 
+        public object SaveWeights()
+        {
+            SavedWeights save = new SavedWeights();
+            save.HiddenWeights = hiddenLayer.IncomingWeights.Clone();
+            save.OutputWeights = outputLayer.IncomingWeights.Clone();
 
+            return save;
+        }
+
+        public void RestoreWeights(object savedWeights)
+        {
+            SavedWeights save = (SavedWeights)savedWeights;
+
+            hiddenLayer.IncomingWeights = save.HiddenWeights;
+            outputLayer.IncomingWeights = save.OutputWeights;
+        }
+
+        private class SavedWeights
+        {
+            public Matrix<double> HiddenWeights;
+            public Matrix<double> OutputWeights;
+        }
     }
 }

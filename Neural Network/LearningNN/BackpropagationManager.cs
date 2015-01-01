@@ -17,7 +17,7 @@ namespace LearningNN
     public static class BackpropagationManager
     {
         public static LearningResult Run(INetwork network, IDataSet trainData, IDataSet testData, 
-            ILearningStrategy learningStrategy)
+            ILearningStrategy learningStrategy, ILearningStatus statusHolder)
         {
             //AssertArguments(trainData, testData, learningRate); // TODO: write assertions
 
@@ -27,7 +27,7 @@ namespace LearningNN
             }
 
             LearningResult learningResult = new LearningResult();
-            learningResult.MSEHistory = learningStrategy.Train(network, trainData);
+            learningResult.MSEHistory = learningStrategy.Train(network, trainData, statusHolder);
             FillOutput(network, testData);
             return learningResult;
         }

@@ -28,7 +28,7 @@ using System.Windows.Shapes;
 
 namespace Neural_Network
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, ILearningStatus
     {
         public bool IsReady { get { return csvLines != null; } }
 
@@ -103,8 +103,8 @@ namespace Neural_Network
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
             int maxIterations = int.Parse(MaxIterations.Text);
             int badIterations = BadIterations.Text == ""? maxIterations : int.Parse(BadIterations.Text); // ignore or use
-            double learningRate = LearningRateSlider.Value;
-            double momentum = MomentumSlider.Value;
+            double learningRate = double.Parse(LearningRate.Text);
+            double momentum = double.Parse(Momentum.Text);
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
@@ -150,12 +150,18 @@ namespace Neural_Network
             learningStrategy = vSetStrategy;
 
             var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
-                learningStrategy);
+                learningStrategy, this);
 
             NormalizeDataBack(network, trainDataSet, testDataSet);
 
             ShowNetworkErrorWindow(learningResult);
-            Show1DRegression(trainDataSet, testDataSet, false);
+            bool plotAgainstInput = false;
+            if (problemType == PartIIProblemType.CTS)
+            {
+                plotAgainstInput = true;
+            }
+
+            Show1DRegression(trainDataSet, testDataSet, plotAgainstInput);
         }
 
         private void CheckIfPerformPCA(INetwork network)
@@ -267,13 +273,13 @@ namespace Neural_Network
             errorWindow.Show();
         }
 
-        private void Show1DRegression(IDataSet trainingSet, IDataSet testSet, bool debugPlot) // debugPlot doesn't use time index, just X -> Y mapping values
+        private void Show1DRegression(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time
         {
             List<RegressionPoint> trainPoints = new List<RegressionPoint>();
             List<RegressionPoint> testIdealPoints = new List<RegressionPoint>();
             List<RegressionPoint> networkAnswers = new List<RegressionPoint>();
             Func<Pattern, double> patternToDouble;
-            if(debugPlot)
+            if(plotAgainstInput)
             {
                 patternToDouble = p => p.Input[0];
             }
@@ -298,6 +304,11 @@ namespace Neural_Network
                 testIdealPoints,
                 networkAnswers);
             regressionWindow.Show();
+        }
+
+        public void SetText(string text)
+        {
+            this.Title = text;
         }
     }
 
