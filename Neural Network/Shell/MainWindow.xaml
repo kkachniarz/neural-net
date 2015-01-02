@@ -64,6 +64,7 @@
             <RowDefinition Height="15"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="15"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -115,7 +116,18 @@
         <Label Name="TrainSetLabel" Grid.Row="14" Grid.Column="1" 
                Content="..."/>
 
-        <Button Grid.Row="16" Grid.Column="0" Name="StartButton" Click="StartButtonClick" Content="START"
-                Grid.ColumnSpan="2" Width="100" FontWeight="Bold" IsEnabled="False"/>
+        <Button Grid.Row="15" Grid.Column="0" Content="Load parameters"/>
+        <Label Name="LoadParametersLabel" Grid.Row="15" Grid.Column="1" 
+               Content="..."/>
+
+        <StackPanel Grid.Row="17" Grid.Column="0" Name="CheckboxStackPanel">
+            <CheckBox Name="ShowPlotsCheckbox" Content="Display plots"
+                Width="100" FontWeight="Bold" IsChecked="True"/>
+            <CheckBox Name="SavePlotsCheckbox" Content="Save plots"
+                Width="100" FontWeight="Bold" IsChecked="True"/>
+        </StackPanel>
+       
+        <Button Grid.Row="17" Grid.Column="1" Name="StartButton" Click="StartButtonClick" Content="START"
+                Width="100" FontWeight="Bold" IsEnabled="False"/>
     </Grid>
 </Window>

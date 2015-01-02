@@ -1,7 +1,6 @@
 ﻿using LearningNN;
 using LearningNN.DataSet;
 using LearningNN.Learning;
-using LearningNN.Learning;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Microsoft.Win32;
@@ -33,6 +32,7 @@ namespace Neural_Network
     {
         public bool IsReady { get { return csvLines != null; } }
 
+        ReportingOptions reportingOptions;
         List<DenseVector> csvLines;
         IDataSet testDataSet;
         IDataSet trainDataSet;
@@ -52,10 +52,29 @@ namespace Neural_Network
             BiasCombobox.SelectedIndex = 0;
         }
 
+        private void ReadParameters(object sender, RoutedEventArgs e)
+        {
+            string shortName;
+            OpenFileDialog csvDlg = new OpenFileDialog();
+            csvDlg.DefaultExt = ".txt";
+            csvDlg.Filter = "TXT documents (.txt)|*.txt";
+            csvDlg.Title = "Select a .txt file containing network parameters";
+            dataSetPath = ReadFile(out shortName, csvDlg);
+
+            if (dataSetPath == null)
+                return;
+
+            // enable disable buttons, save data.
+        }
+
         private void ReadDataSet(object sender, RoutedEventArgs e)
         {
             string shortName;
-            dataSetPath = ReadCSVFile(out shortName);
+            OpenFileDialog csvDlg = new OpenFileDialog();
+            csvDlg.DefaultExt = ".csv";
+            csvDlg.Filter = "CSV documents (.csv)|*.csv";
+            csvDlg.Title = "Select proper CSV file";
+            dataSetPath = ReadFile(out shortName, csvDlg);
 
             if (dataSetPath == null)
                 return;
@@ -69,19 +88,14 @@ namespace Neural_Network
             }
         }
 
-        private string ReadCSVFile(out string shortName)
+        private string ReadFile(out string shortName, OpenFileDialog dialog)
         {
-            OpenFileDialog csvDlg = new OpenFileDialog();
-            csvDlg.DefaultExt = ".csv";
-            csvDlg.Filter = "CSV documents (.csv)|*.csv";
-            csvDlg.Title = "Select proper CSV file";
-
-            var result = csvDlg.ShowDialog();
+            var result = dialog.ShowDialog();
 
             if (result == true)
             {
-                var fileName = csvDlg.FileName.ToString();
-                shortName = csvDlg.SafeFileName;
+                var fileName = dialog.FileName.ToString();
+                shortName = dialog.SafeFileName;
                 return fileName;
             }
 
@@ -99,6 +113,7 @@ namespace Neural_Network
                 layersVal.Add(int.Parse(layer));
             }
 
+            reportingOptions = GetReportingOptions();
             LearningSettings lSettings = GetLearningSettings();
 
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
@@ -158,6 +173,14 @@ namespace Neural_Network
             }
 
             Show1DRegression(trainDataSet, testDataSet, plotAgainstInput);
+        }
+
+        private ReportingOptions GetReportingOptions()
+        {
+            ReportingOptions options = new ReportingOptions();
+            options.ShouldDisplay = ShowPlotsCheckbox.IsChecked.Value;
+            options.ShouldSave = SavePlotsCheckbox.IsChecked.Value;
+            return options;
         }
 
         private LearningSettings GetLearningSettings()
@@ -317,6 +340,12 @@ namespace Neural_Network
         public void SetText(string text)
         {
             this.Title = text;
+        }
+
+        private class ReportingOptions
+        {
+            public bool ShouldDisplay { get; set; }
+            public bool ShouldSave { get; set; }
         }
     }
 
