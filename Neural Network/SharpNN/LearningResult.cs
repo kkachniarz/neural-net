@@ -10,6 +10,13 @@ namespace SharpNN
     public class LearningResult
     {
         public List<double> MSEHistory { get; set; }
+        public int IterationsExecuted
+        {
+            get
+            {
+                return MSEHistory.Count - 1;
+            }
+        }
         // + data for plots
 
         public LearningResult()

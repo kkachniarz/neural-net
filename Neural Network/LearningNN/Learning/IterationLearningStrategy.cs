@@ -42,7 +42,7 @@ namespace LearningNN.Learning
 
         protected override void UpdateStatus()
         {
-            statusHolder.SetText(string.Format("iter: {0}, error: {1}", currentIteration, errorHistory[errorHistory.Count - 1]));
+            statusHolder.SetStatusText(string.Format("iter: {0}, error: {1}", currentIteration, errorHistory[errorHistory.Count - 1]));
         }
     }
 }

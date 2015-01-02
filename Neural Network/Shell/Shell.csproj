@@ -98,9 +98,11 @@
     <Compile Include="Plotting\ClassificationWindow.xaml.cs">
       <DependentUpon>ClassificationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plotting\ErrorPlotBuilder.cs" />
     <Compile Include="Plotting\NetworkErrorWindow.xaml.cs">
       <DependentUpon>NetworkErrorWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plotting\RegressionPlotBuilder.cs" />
     <Compile Include="Plotting\RegressionWindow.xaml.cs">
       <DependentUpon>RegressionWindow.xaml</DependentUpon>
     </Compile>

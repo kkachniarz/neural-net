@@ -8,6 +8,6 @@ namespace LearningNN.Learning
 {
     public interface ILearningStatus
     {
-        void SetText(string text);
+        void SetStatusText(string text);
     }
 }

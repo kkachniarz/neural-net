@@ -6,14 +6,18 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using Microsoft.Win32;
 using Neural_Network;
 using Neural_Network.Plotting;
+using OxyPlot;
+using OxyPlot.Wpf;
 using RecursiveNN;
 using SharpNN;
 using SharpNN.ActivationFunctions;
 using SharpNN.Statistics;
 using Shell.Enums;
+using Shell.Plotting;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,9 +36,12 @@ namespace Neural_Network
     {
         public bool IsReady { get { return csvLines != null; } }
 
+        private const double ERROR_SCALE = 1000.0;
+        private int runCounter = 0;
+
         ReportingOptions reportingOptions;
         List<DenseVector> csvLines;
-        List<LearningSettings> settingsFromFile = null;
+        List<LearningSettings> settingsToRun = new List<LearningSettings>();
         IDataSet testDataSet;
         IDataSet trainDataSet;
         ILearningStrategy learningStrategy;
@@ -66,8 +73,9 @@ namespace Neural_Network
                 return;
 
             ToggleAutomationRelatedSettings(false);
-            settingsFromFile = FileManager.RetrieveParameters(paramsPath);
+            settingsToRun = FileManager.RetrieveParameters(paramsPath);
             LoadParametersLabel.Content = shortName;
+            ShowPlotsCheckbox.IsChecked = false; // uncheck by default to avoid spamming windows
             // allow to unload parameters from UI
         }
 
@@ -118,14 +126,9 @@ namespace Neural_Network
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
-            var layers = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
-            List<int> layersVal = new List<int>();
-
-            foreach (var layer in layers)
-            {
-                layersVal.Add(int.Parse(layer));
-            }
-
+            StartButton.IsEnabled = false;
+            runCounter = 0;
+            string[] layersText = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
             IActivation activation = ((ActivationFunction)ActivationCombobox.SelectedItem == ActivationFunction.Bipolar) ?
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
@@ -138,20 +141,21 @@ namespace Neural_Network
             PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
 
             reportingOptions = GetReportingOptions();
-            LearningSettings settingsFromUI = GetLearningSettings();
 
-            List<LearningSettings> settingsToRun = new List<LearningSettings>();
-            if (settingsFromFile == null)
+            if (settingsToRun.Count == 0)
             {
-                settingsToRun.Add(settingsFromUI);
-            }
-            else
-            {
-                settingsToRun = settingsFromFile;
-            }
+                settingsToRun.Add(GetLearningSettingsFromUI());
+            }            
 
             foreach (LearningSettings learningSettings in settingsToRun)
             {
+                runCounter++;
+                List<int> layersVal = new List<int>();
+                foreach (var layer in layersText)
+                {
+                    layersVal.Add(int.Parse(layer)); // re-initialize layer counts -> Later layer counts should be also configurable during parameter sweeps.
+                }
+
                 if (problemType == PartIIProblemType.CTS)
                 {
                     InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
@@ -187,20 +191,78 @@ namespace Neural_Network
 
                 NormalizeDataBack(network, trainDataSet, testDataSet);
 
-                ShowNetworkErrorWindow(learningResult);
+                
                 bool plotAgainstInput = false;
                 if (problemType == PartIIProblemType.CTS)
                 {
                     plotAgainstInput = true;
                 }
 
-                Show1DRegression(trainDataSet, testDataSet, plotAgainstInput);
+                PlotModel regressionPlot = Build1DRegressionModel(trainDataSet, testDataSet, plotAgainstInput);
+                ErrorPlotBuilder builder = new ErrorPlotBuilder(ERROR_SCALE);
+                PlotModel errorPlot = builder.SetUpModel(learningResult.MSEHistory);
+
+                if (reportingOptions.ShouldDisplay)
+                {
+                    DisplayResults(regressionPlot, errorPlot);                 
+                }
+
+                if(reportingOptions.ShouldSave)
+                {
+                    SaveResultsToDisk(layersVal, learningSettings, learningResult, regressionPlot, errorPlot);
+                }
             }
+
+            StartButton.IsEnabled = true;
         }
 
-        private void ExecuteWithSettings(LearningSettings settings)
+        private static void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot)
         {
+            Window errorWindow = new NetworkErrorWindow(errorPlot);
+            errorWindow.Show();
+            Window regressionWindow = new RegressionWindow(regressionPlot);
+            regressionWindow.Show();
+        }
 
+        private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings, 
+            LearningResult learningResult, PlotModel regressionPlot, PlotModel errorPlot)
+        {
+            DateTime now = DateTime.Now;
+
+            string datePrefix = now.ToShortDateString() + "_" + now.ToLongTimeString().Replace(":", "-") + 
+                string.Format("-{0}", now.Millisecond);
+            string regressionFileName = datePrefix + "_regression.png";
+            string regressionSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), regressionFileName);
+            using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
+            {
+                PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
+            }
+
+            string errorFileName = datePrefix + "_error.png";
+            string errorSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), errorFileName);
+            using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
+            {
+                PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
+            }
+
+            string infoFileName = datePrefix + "_info.txt";
+            string infoSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), infoFileName);
+            // TODO: calculating test set error, calculating how often the direction of change is predicted correctly
+            // TODO: allow many executions for each configuration to calculate averages.
+            FileManager.SaveLearningInfo(infoSavePath, learningSettings, DateTime.Now,
+                GetAdditionalResultInfo(learningResult, layersVal));
+        }
+
+        private string GetAdditionalResultInfo(LearningResult result, List<int> neuronCounts)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Iterations executed: {0}", result.IterationsExecuted);
+            sb.AppendLine();
+            sb.AppendLine(System.IO.Path.GetFileName(dataSetPath));
+            sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
+            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
+            sb.AppendFormat("Error on test set: {0}\r\n", "TODO");
+            return sb.ToString();
         }
 
         private ReportingOptions GetReportingOptions()
@@ -211,7 +273,7 @@ namespace Neural_Network
             return options;
         }
 
-        private LearningSettings GetLearningSettings()
+        private LearningSettings GetLearningSettingsFromUI()
         {
             LearningSettings learnSettings = new LearningSettings();
             learnSettings.MaxIterations = int.Parse(MaxIterations.Text);
@@ -280,22 +342,22 @@ namespace Neural_Network
         private void InitStock(List<int> layersVal, float trainSetPercentage, int outputCount)
         {
             int dimensionPca;
-            int dispalyInputCount = csvLines[0].Count - outputCount; // this way we can calculate number of display inputs
+            int displayInputCount = csvLines[0].Count - outputCount; // this way we can calculate number of display inputs
 
             if (int.TryParse(this.PCA.Text, out dimensionPca))
             {
-                layersVal.Insert(0, Math.Min(dimensionPca, dispalyInputCount));
+                layersVal.Insert(0, Math.Min(dimensionPca, displayInputCount));
             }
             else
             {
-                layersVal.Insert(0, dispalyInputCount);
+                layersVal.Insert(0, displayInputCount);
             }
             
             
             int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
 
-            List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, dispalyInputCount)).ToList();
-            List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(dispalyInputCount, outputCount)).ToList();
+            List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, displayInputCount)).ToList();
+            List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(displayInputCount, outputCount)).ToList();
 
             trainDataSet = new StockDataSet(allInputs.ExtractList(0, trainSetEndIndex), 
                 allOutputs.ExtractList(0, trainSetEndIndex), 0);
@@ -326,13 +388,7 @@ namespace Neural_Network
             FileManager.AppendDataToCSV(path, output);
         }
 
-        private void ShowNetworkErrorWindow(LearningResult result)
-        {
-            Window errorWindow = new NetworkErrorWindow(result.MSEHistory);
-            errorWindow.Show();
-        }
-
-        private void Show1DRegression(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time
+        private PlotModel Build1DRegressionModel(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time
         {
             List<RegressionPoint> trainPoints = new List<RegressionPoint>();
             List<RegressionPoint> testIdealPoints = new List<RegressionPoint>();
@@ -358,16 +414,14 @@ namespace Neural_Network
                 networkAnswers.Add(new RegressionPoint(patternToDouble(p), p.NetworkAnswer.At(0)));
             }
 
-            Window regressionWindow = new RegressionWindow(
-                trainPoints,
-                testIdealPoints,
-                networkAnswers);
-            regressionWindow.Show();
+            RegressionPlotBuilder builder = new RegressionPlotBuilder();
+            PlotModel regressionPlotModel = builder.SetUpModel(trainPoints, testIdealPoints, networkAnswers);
+            return regressionPlotModel;
         }
 
-        public void SetText(string text)
-        {
-            this.Title = text;
+        public void SetStatusText(string text)
+        {           
+            this.Title = string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count, text);
         }
 
         private class ReportingOptions

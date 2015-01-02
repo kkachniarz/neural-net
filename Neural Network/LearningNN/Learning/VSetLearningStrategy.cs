@@ -87,7 +87,7 @@ namespace LearningNN.Learning
 
         protected override void UpdateStatus()
         {
-            statusHolder.SetText(string.Format("iter: {0}, error: {1}", iteration, errorHistory[errorHistory.Count - 1]));
+            statusHolder.SetStatusText(string.Format("iter: {0}, error: {1}", iteration, errorHistory[errorHistory.Count - 1]));
         }
 
         private double CalculateMSEValidation()

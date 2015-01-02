@@ -92,6 +92,22 @@ namespace Neural_Network
             return BuildSettings(groupedParameters, LearningSettings.RequiredTitles);
         }
 
+        public static void SaveLearningInfo(string path, LearningSettings settings, DateTime time, string additionalInfo)
+        {
+            using (FileStream fs = new FileStream(path, FileMode.CreateNew))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    sw.WriteLine(settings.ToString());
+                    sw.Write(time.ToLongDateString());
+                    sw.WriteLine("  " + time.ToShortTimeString());
+                    sw.WriteLine(additionalInfo);
+                }
+            }
+
+        }
+
+        // TODO: refactor - move these methods outside FileManager class
         private static List<LearningSettings> BuildSettings(Dictionary<string, List<string>> groupedParameters, 
             List<string> titles)
         {            

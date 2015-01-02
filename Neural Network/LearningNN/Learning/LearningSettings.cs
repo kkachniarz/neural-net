@@ -70,5 +70,13 @@ namespace LearningNN.Learning
                     throw new ArgumentException(string.Format("Unknown parameter title {0}", title));
             }
         }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Learning Rate: {0}\r\nMomentum: {1}\r\nMax Iterations: {2}\r\nBad Iterations: {3}",
+                LearningRate, Momentum, MaxIterations, BadIterations);
+            return sb.ToString();
+        }
     }
 }
