@@ -249,15 +249,20 @@ namespace Neural_Network
             string infoSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), infoFileName);
             // TODO: calculating test set error, calculating how often the direction of change is predicted correctly
             // TODO: allow many executions for each configuration to calculate averages.
-            FileManager.SaveLearningInfo(infoSavePath, learningSettings, DateTime.Now,
-                GetAdditionalResultInfo(learningResult, layersVal));
+            // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
+
+            FileManager.SaveLearningInfo(infoSavePath,
+                GetResultInfo(learningSettings, learningResult, layersVal, now));
         }
 
-        private string GetAdditionalResultInfo(LearningResult result, List<int> neuronCounts)
+        private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, DateTime now)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Iterations executed: {0}", result.IterationsExecuted);
-            sb.AppendLine();
+            sb.AppendLine(settings.ToString());
+            sb.Append(now.ToLongDateString());
+            sb.Append("  ");
+            sb.AppendLine(now.ToLongTimeString());
+            sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
             sb.AppendLine(System.IO.Path.GetFileName(dataSetPath));
             sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
             sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);

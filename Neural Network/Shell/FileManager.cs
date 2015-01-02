@@ -92,16 +92,13 @@ namespace Neural_Network
             return BuildSettings(groupedParameters, LearningSettings.RequiredTitles);
         }
 
-        public static void SaveLearningInfo(string path, LearningSettings settings, DateTime time, string additionalInfo)
+        public static void SaveLearningInfo(string path, string text)
         {
             using (FileStream fs = new FileStream(path, FileMode.CreateNew))
             {
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
-                    sw.WriteLine(settings.ToString());
-                    sw.Write(time.ToLongDateString());
-                    sw.WriteLine("  " + time.ToShortTimeString());
-                    sw.WriteLine(additionalInfo);
+                    sw.Write(text);
                 }
             }
 
