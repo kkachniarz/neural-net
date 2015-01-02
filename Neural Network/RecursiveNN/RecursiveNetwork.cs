@@ -76,6 +76,11 @@ namespace RecursiveNN
             outputLayer.ImproveWeights(learningRate, momentum);
         }
 
+        public void ResetMemory()
+        {
+            contextLayer.Memory.Clear();
+        }
+
         private Vector<double> ConcatSignals(Vector<double> x, Vector<double> y)
         {
  	        return new DenseVector(x.Concat(y).ToArray());
@@ -93,6 +98,11 @@ namespace RecursiveNN
             save.HiddenWeights = hiddenLayer.IncomingWeights.Clone();
             save.OutputWeights = outputLayer.IncomingWeights.Clone();
 
+            save.HiddenBias = hiddenLayer.BiasWeights.Clone();
+            save.OutputBias = outputLayer.BiasWeights.Clone();
+
+            save.Memory = contextLayer.Memory.Clone();
+
             return save;
         }
 
@@ -100,14 +110,23 @@ namespace RecursiveNN
         {
             SavedWeights save = (SavedWeights)savedWeights;
 
-            hiddenLayer.IncomingWeights = save.HiddenWeights;
-            outputLayer.IncomingWeights = save.OutputWeights;
+            hiddenLayer.IncomingWeights = save.HiddenWeights.Clone();
+            outputLayer.IncomingWeights = save.OutputWeights.Clone();
+
+            hiddenLayer.BiasWeights = save.HiddenBias.Clone();
+            outputLayer.BiasWeights = save.OutputBias.Clone();
+
+            contextLayer.Memory = save.Memory.Clone();
         }
 
         private class SavedWeights
         {
             public Matrix<double> HiddenWeights;
             public Matrix<double> OutputWeights;
+
+            public Vector<double> HiddenBias;
+            public Vector<double> OutputBias;
+            public Vector<double> Memory;
         }
     }
 }

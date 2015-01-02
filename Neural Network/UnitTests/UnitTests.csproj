@@ -63,9 +63,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ActivationFunctionsTests.cs" />
     <Compile Include="MathHelperTests.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="SaveWeightsTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RecursiveNN\RecursiveNN.csproj">
+      <Project>{959c676b-6d60-48e4-b227-ec41d32209e5}</Project>
+      <Name>RecursiveNN</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SharpNN\SharpNN.csproj">
       <Project>{EDCC7124-68C9-40CE-A27D-330775D140A9}</Project>
       <Name>SharpNN</Name>
