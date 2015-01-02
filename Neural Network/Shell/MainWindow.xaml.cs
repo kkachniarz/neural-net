@@ -34,6 +34,7 @@ namespace Neural_Network
 
         ReportingOptions reportingOptions;
         List<DenseVector> csvLines;
+        List<LearningSettings> settingsFromFile = null;
         IDataSet testDataSet;
         IDataSet trainDataSet;
         ILearningStrategy learningStrategy;
@@ -59,12 +60,24 @@ namespace Neural_Network
             csvDlg.DefaultExt = ".txt";
             csvDlg.Filter = "TXT documents (.txt)|*.txt";
             csvDlg.Title = "Select a .txt file containing network parameters";
-            dataSetPath = ReadFile(out shortName, csvDlg);
+            string paramsPath = ReadFile(out shortName, csvDlg);
 
-            if (dataSetPath == null)
+            if (paramsPath == null)
                 return;
 
-            // enable disable buttons, save data.
+            ToggleAutomationRelatedSettings(false);
+            settingsFromFile = FileManager.RetrieveParameters(paramsPath);
+            LoadParametersLabel.Content = shortName;
+            // allow to unload parameters from UI
+        }
+
+        private void ToggleAutomationRelatedSettings(bool on)
+        {
+            LearningRate.IsEnabled = on;
+            Momentum.IsEnabled = on;
+            BadIterations.IsEnabled = on;
+            MaxIterations.IsEnabled = on;
+            // add more as more parameters are handled by automation
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -113,11 +126,8 @@ namespace Neural_Network
                 layersVal.Add(int.Parse(layer));
             }
 
-            reportingOptions = GetReportingOptions();
-            LearningSettings lSettings = GetLearningSettings();
-
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
-            IActivation activation = ((ActivationFunction)ActivationCombobox.SelectedItem == ActivationFunction.Bipolar) ? 
+            IActivation activation = ((ActivationFunction)ActivationCombobox.SelectedItem == ActivationFunction.Bipolar) ?
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
 
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
@@ -127,52 +137,70 @@ namespace Neural_Network
 
             PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
 
-            if (problemType == PartIIProblemType.CTS)
+            reportingOptions = GetReportingOptions();
+            LearningSettings settingsFromUI = GetLearningSettings();
+
+            List<LearningSettings> settingsToRun = new List<LearningSettings>();
+            if (settingsFromFile == null)
             {
-                InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
+                settingsToRun.Add(settingsFromUI);
             }
             else
             {
-                InitStock(layersVal, trainSetPercentage, outputCount);
+                settingsToRun = settingsFromFile;
             }
 
-            layersVal.Add(outputCount);
-            INetwork network = null;
-            switch(networkType)
+            foreach (LearningSettings learningSettings in settingsToRun)
             {
-                case NetworkType.MLP:
-                    network = new NeuralNetwork(activation, bias, layersVal.ToArray());
-                    break;
-                case NetworkType.Jordan:
-                    network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
-                    activation, bias, layersVal[0], layersVal[1], layersVal[2]);
-                    break;
-                case NetworkType.Elman:
-                    network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
-                    activation, bias, layersVal[0], layersVal[1], layersVal[2]);
-                    break;
+                if (problemType == PartIIProblemType.CTS)
+                {
+                    InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
+                }
+                else
+                {
+                    InitStock(layersVal, trainSetPercentage, outputCount);
+                }
+
+                layersVal.Add(outputCount);
+                INetwork network = null;
+                switch (networkType)
+                {
+                    case NetworkType.MLP:
+                        network = new NeuralNetwork(activation, bias, layersVal.ToArray());
+                        break;
+                    case NetworkType.Jordan:
+                        network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
+                        activation, bias, layersVal[0], layersVal[1], layersVal[2]);
+                        break;
+                    case NetworkType.Elman:
+                        network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
+                        activation, bias, layersVal[0], layersVal[1], layersVal[2]);
+                        break;
+                }
+
+                NormalizeData(network, trainDataSet, testDataSet);
+                CheckIfPerformPCA(network);
+                learningStrategy = new VSetLearningStrategy(learningSettings);
+
+                var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
+                    learningStrategy, this);
+
+                NormalizeDataBack(network, trainDataSet, testDataSet);
+
+                ShowNetworkErrorWindow(learningResult);
+                bool plotAgainstInput = false;
+                if (problemType == PartIIProblemType.CTS)
+                {
+                    plotAgainstInput = true;
+                }
+
+                Show1DRegression(trainDataSet, testDataSet, plotAgainstInput);
             }
+        }
 
-            
-            NormalizeData(network, trainDataSet, testDataSet);
+        private void ExecuteWithSettings(LearningSettings settings)
+        {
 
-            CheckIfPerformPCA(network);
-
-            learningStrategy = new VSetLearningStrategy(lSettings);
-
-            var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
-                learningStrategy, this);
-
-            NormalizeDataBack(network, trainDataSet, testDataSet);
-
-            ShowNetworkErrorWindow(learningResult);
-            bool plotAgainstInput = false;
-            if (problemType == PartIIProblemType.CTS)
-            {
-                plotAgainstInput = true;
-            }
-
-            Show1DRegression(trainDataSet, testDataSet, plotAgainstInput);
         }
 
         private ReportingOptions GetReportingOptions()

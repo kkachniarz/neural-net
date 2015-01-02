@@ -116,7 +116,7 @@
         <Label Name="TrainSetLabel" Grid.Row="14" Grid.Column="1" 
                Content="..."/>
 
-        <Button Grid.Row="15" Grid.Column="0" Content="Load parameters"/>
+        <Button Grid.Row="15" Grid.Column="0" Content="Load parameters" Click="ReadParameters"/>
         <Label Name="LoadParametersLabel" Grid.Row="15" Grid.Column="1" 
                Content="..."/>
 
