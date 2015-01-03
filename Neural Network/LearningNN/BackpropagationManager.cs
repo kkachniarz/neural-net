@@ -16,7 +16,7 @@ namespace LearningNN
 {
     public static class BackpropagationManager
     {
-        public static LearningResult Run(INetwork network, IDataSet trainData, IDataSet testData, 
+        public static LearningResult Run(INetwork network, IDataSet trainData, IDataSet testData,
             ILearningStrategy learningStrategy, ILearningStatus statusHolder)
         {
             //AssertArguments(trainData, testData, learningRate); // TODO: write assertions
@@ -28,27 +28,62 @@ namespace LearningNN
 
             LearningResult learningResult = new LearningResult();
             learningResult.MSEHistory = learningStrategy.Train(network, trainData, statusHolder);
-            FillOutput(network, testData);
+            learningResult.TestSetError = AnswerTestSet(network, testData);
+            learningResult.TestSetDirectionGuessed = CalculateDirectionGuessed(testData);
             return learningResult;
         }
 
-        private static void FillOutput(INetwork network, IDataSet data)
+        private static double AnswerTestSet(INetwork network, IDataSet testDataSet)
         {
-            foreach(Pattern p in data.EnumeratePatterns())
+            foreach (Pattern p in testDataSet.EnumeratePatterns())
             {
                 p.NetworkAnswer = network.ComputeOutput(p.Input);
             }
-        }
 
-        private static double CalculateMSEError(INetwork network, IDataSet dataSet)
-        {
             double mseSum = 0.0;
-            foreach(Pattern p in dataSet.EnumeratePatterns())
+            foreach (Pattern p in testDataSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - p.NetworkAnswer);
             }
 
-            return MSECalculator.CalculateEpochMSE(mseSum, dataSet.PatternCount, network.Activation);
+            return MSECalculator.CalculateEpochMSE(mseSum, testDataSet.PatternCount, network.Activation);
+        }
+
+        private static double CalculateDirectionGuessed(IDataSet testDataSet) // assumes 1 output. 
+        {
+            if (testDataSet.PatternCount <= 1)
+            {
+                throw new ArgumentException("Pattern count of the test set must be greater than 1");
+            }
+
+            if (testDataSet.GetPatternAt(0).IdealOutput.Count > 1)
+            {
+                throw new ArgumentException("To calculate how often the direction of change is guessed " +
+                "correctly, exactly 1 output value is required");
+            }
+
+            return CalculateDirectionImplementation(testDataSet.EnumeratePatterns().ToList());
+        }
+
+        public static double CalculateDirectionImplementation(List<Pattern> patterns) // Public for unit tests
+        {
+            double guessCount = 0;
+            Pattern prev = patterns[0];
+            Pattern next = null;
+            for (int i = 1; i < patterns.Count; i++)
+            {
+                next = patterns[i];
+                int idealDir = Math.Sign(next.IdealOutput[0] - prev.IdealOutput[0]);
+                int predictedDir = Math.Sign(next.NetworkAnswer[0] - prev.NetworkAnswer[0]);
+                if (idealDir == predictedDir)
+                {
+                    guessCount += 1.0;
+                }
+
+                prev = next;
+            }
+
+            return guessCount / (double)(patterns.Count - 1);
         }
     }
 }

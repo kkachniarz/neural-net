@@ -1,6 +1,7 @@
 ﻿using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using SharpNN;
 using SharpNN.Statistics;
 using System;
 using System.Collections.Generic;
@@ -23,10 +24,12 @@ namespace Shell.Plotting
     /// </summary>
     public partial class RegressionWindow : Window
     {
-        public RegressionWindow(PlotModel plotModel)
+        public RegressionWindow(PlotModel plotModel, LearningResult learningResult)
         {
             InitializeComponent();
             RegressionPlot.Model = plotModel;
+            this.Title = string.Format("Test Set Dir: {0} Test Set Err: {1}", 
+                learningResult.TestSetDirectionGuessed.ToString("F5"), learningResult.TestSetError.ToString("F5"));
         }
     }
 }

@@ -10,6 +10,9 @@ namespace SharpNN
     public class LearningResult
     {
         public List<double> MSEHistory { get; set; }
+        public double TestSetError { get; set; }
+        public double TestSetDirectionGuessed { get; set; }
+
         public int IterationsExecuted
         {
             get
@@ -22,6 +25,8 @@ namespace SharpNN
         public LearningResult()
         {
             MSEHistory = new List<double>();
+            TestSetError = 0;
+            TestSetDirectionGuessed = 0;
         }
     }
 }

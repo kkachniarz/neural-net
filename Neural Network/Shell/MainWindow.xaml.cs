@@ -201,26 +201,25 @@ namespace Neural_Network
                 PlotModel regressionPlot = Build1DRegressionModel(trainDataSet, testDataSet, plotAgainstInput);
                 ErrorPlotBuilder builder = new ErrorPlotBuilder(ERROR_SCALE);
                 PlotModel errorPlot = builder.SetUpModel(learningResult.MSEHistory);
+                if (reportingOptions.ShouldSave)
+                {
+                    SaveResultsToDisk(layersVal, learningSettings, learningResult, regressionPlot, errorPlot);
+                }
 
                 if (reportingOptions.ShouldDisplay)
                 {
-                    DisplayResults(regressionPlot, errorPlot);                 
-                }
-
-                if(reportingOptions.ShouldSave)
-                {
-                    SaveResultsToDisk(layersVal, learningSettings, learningResult, regressionPlot, errorPlot);
+                    DisplayResults(regressionPlot, errorPlot, learningResult);                 
                 }
             }
 
             StartButton.IsEnabled = true;
         }
 
-        private static void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot)
+        private static void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
         {
             Window errorWindow = new NetworkErrorWindow(errorPlot);
             errorWindow.Show();
-            Window regressionWindow = new RegressionWindow(regressionPlot);
+            Window regressionWindow = new RegressionWindow(regressionPlot, learningResult);
             regressionWindow.Show();
         }
 
@@ -266,7 +265,8 @@ namespace Neural_Network
             sb.AppendLine(System.IO.Path.GetFileName(dataSetPath));
             sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
             sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
-            sb.AppendFormat("Error on test set: {0}\r\n", "TODO");
+            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
+            sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);
             return sb.ToString();
         }
 

@@ -15,9 +15,9 @@ namespace Shell.Plotting
         public PlotModel SetUpModel(List<RegressionPoint> trainingPoints, List<RegressionPoint> idealAnswer, List<RegressionPoint> networkAnswer)
         {
             PlotModel plotModel = new PlotModel();
-            trainingPoints.Sort((a, b) => Math.Sign(a.X - b.X));
-            idealAnswer.Sort((a, b) => Math.Sign(a.X - b.X));
-            networkAnswer.Sort((a, b) => Math.Sign(a.X - b.X));
+            trainingPoints = trainingPoints.OrderBy(a => a.X).ToList();
+            idealAnswer = idealAnswer.OrderBy(a => a.X).ToList();
+            networkAnswer = networkAnswer.OrderBy(a => a.X).ToList();
 
             var series1 = new LineSeries { Title = "Training data", MarkerType = MarkerType.Triangle, MarkerSize = 1.0, MarkerFill = OxyColors.DarkGray };
             trainingPoints.ForEach(x => series1.Points.Add(CreateDataPoint(x)));

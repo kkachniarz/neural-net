@@ -64,8 +64,13 @@
     <Compile Include="ActivationFunctionsTests.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="SaveWeightsTests.cs" />
+    <Compile Include="DirectionErrorTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LearningNN\LearningNN.csproj">
+      <Project>{06c94856-1cb4-4071-ad86-10ea31b99191}</Project>
+      <Name>LearningNN</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RecursiveNN\RecursiveNN.csproj">
       <Project>{959c676b-6d60-48e4-b227-ec41d32209e5}</Project>
       <Name>RecursiveNN</Name>
