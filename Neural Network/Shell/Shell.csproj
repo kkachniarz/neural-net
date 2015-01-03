@@ -71,7 +71,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Plotting\AggregateResult.cs" />
+    <Compile Include="Enums\ActivationType.cs" />
     <Compile Include="Enums\NetworkType.cs" />
+    <Compile Include="Enums\PartIIProblemType.cs" />
+    <Compile Include="Enums\YesNo.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileManager.cs" />
     <Page Include="MainWindow.xaml">
@@ -106,6 +110,7 @@
     <Compile Include="Plotting\RegressionWindow.xaml.cs">
       <DependentUpon>RegressionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plotting\ResultStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

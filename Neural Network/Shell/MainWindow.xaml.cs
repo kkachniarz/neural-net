@@ -30,15 +30,20 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace Neural_Network
+namespace Shell
 {
     public partial class MainWindow : Window, ILearningStatus
     {
         public bool IsReady { get { return csvLines != null; } }
 
         private const double ERROR_SCALE = 1000.0;
+        private const int DISPLAY_LIMIT = 10;
         private int runCounter = 0;
+        private int runsPerSettings = 1;         
+        private bool plotAgainstInput = false;
 
+        private Dictionary<LearningSettings, List<ResultStorage>> resultsBySettings = new Dictionary<LearningSettings, List<ResultStorage>>();
+        
         ReportingOptions reportingOptions;
         List<DenseVector> csvLines;
         List<LearningSettings> settingsToRun = new List<LearningSettings>();
@@ -52,7 +57,7 @@ namespace Neural_Network
             InitializeComponent();
 
             NetworkTypeCombobox.ItemsSource = Enum.GetValues(typeof(NetworkType)).Cast<NetworkType>();
-            ActivationCombobox.ItemsSource = Enum.GetValues(typeof(ActivationFunction)).Cast<ActivationFunction>();
+            ActivationCombobox.ItemsSource = Enum.GetValues(typeof(ActivationType)).Cast<ActivationType>();
             BiasCombobox.ItemsSource = Enum.GetValues(typeof(YesNo)).Cast<YesNo>();
 
             ActivationCombobox.SelectedIndex = 0;
@@ -127,94 +132,140 @@ namespace Neural_Network
         {
             StartButton.IsEnabled = false;
             runCounter = 0;
+            runsPerSettings = int.Parse(RunsTextBox.Text);
             string[] layersText = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
-            IActivation activation = ((ActivationFunction)ActivationCombobox.SelectedItem == ActivationFunction.Bipolar) ?
-                (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
 
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
             int ctsPrevValuesCount = 1; // int.Parse(CTSPreviousValues.Text); <- obsolete, never used (CT series depend only on 1 previous value...)
-
             PartIIProblemType problemType = csvLines[0].Count == 1 ? PartIIProblemType.CTS : PartIIProblemType.Stock;
-
             reportingOptions = GetReportingOptions();
 
             if (settingsToRun.Count == 0)
             {
                 settingsToRun.Add(GetLearningSettingsFromUI());
-            }            
+            }
+
+            if (problemType == PartIIProblemType.CTS)
+            {
+                plotAgainstInput = true;
+            }
+
+            ConfirmReportingSettings();
 
             foreach (LearningSettings learningSettings in settingsToRun)
             {
-                runCounter++;
-                List<int> layersVal = new List<int>();
-                foreach (var layer in layersText)
+                resultsBySettings[learningSettings] = new List<ResultStorage>();
+                for (int i = 0; i < runsPerSettings; i++) // repeat several times to average out the results
                 {
-                    layersVal.Add(int.Parse(layer)); // re-initialize layer counts -> Later layer counts should be also configurable during parameter sweeps.
-                }
+                    runCounter++;
+                    List<int> layersVal = new List<int>();
+                    foreach (var layer in layersText)
+                    {
+                        layersVal.Add(int.Parse(layer)); // re-initialize layer counts -> TODO: Later layer counts should be also configurable in params file / learning settings
+                    }
 
-                if (problemType == PartIIProblemType.CTS)
-                {
-                    InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
-                }
-                else
-                {
-                    InitStock(layersVal, trainSetPercentage, outputCount);
-                }
+                    if (problemType == PartIIProblemType.CTS)
+                    {
+                        InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
+                    }
+                    else
+                    {
+                        InitStock(layersVal, trainSetPercentage, outputCount);
+                    }
 
-                layersVal.Add(outputCount);
-                INetwork network = null;
-                switch (networkType)
-                {
-                    case NetworkType.MLP:
-                        network = new NeuralNetwork(activation, bias, layersVal.ToArray());
-                        break;
-                    case NetworkType.Jordan:
-                        network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
-                        activation, bias, layersVal[0], layersVal[1], layersVal[2]);
-                        break;
-                    case NetworkType.Elman:
-                        network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
-                        activation, bias, layersVal[0], layersVal[1], layersVal[2]);
-                        break;
-                }
+                    layersVal.Add(outputCount);
+                    INetwork network = null;
+                    switch (networkType)
+                    {
+                        case NetworkType.MLP:
+                            network = new NeuralNetwork(learningSettings.Activation, bias, layersVal.ToArray());
+                            break;
+                        case NetworkType.Jordan:
+                            network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
+                            learningSettings.Activation, bias, layersVal[0], layersVal[1], layersVal[2]);
+                            break;
+                        case NetworkType.Elman:
+                            network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
+                            learningSettings.Activation, bias, layersVal[0], layersVal[1], layersVal[2]);
+                            break;
+                    }
 
-                NormalizeData(network, trainDataSet, testDataSet);
-                CheckIfPerformPCA(network);
-                learningStrategy = new VSetLearningStrategy(learningSettings);
+                    NormalizeData(network, trainDataSet, testDataSet);
+                    CheckIfPerformPCA(network);
+                    learningStrategy = new VSetLearningStrategy(learningSettings);
 
-                var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
-                    learningStrategy, this);
+                    var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
+                        learningStrategy, this);
 
-                NormalizeDataBack(network, trainDataSet, testDataSet);
+                    NormalizeDataBack(network, trainDataSet, testDataSet);
+                    resultsBySettings[learningSettings].Add(
+                        new ResultStorage(learningResult, trainDataSet, testDataSet, network, layersVal, DateTime.Now));
 
-                
-                bool plotAgainstInput = false;
-                if (problemType == PartIIProblemType.CTS)
-                {
-                    plotAgainstInput = true;
-                }
-
-                PlotModel regressionPlot = Build1DRegressionModel(trainDataSet, testDataSet, plotAgainstInput);
-                ErrorPlotBuilder builder = new ErrorPlotBuilder(ERROR_SCALE);
-                PlotModel errorPlot = builder.SetUpModel(learningResult.MSEHistory);
-                if (reportingOptions.ShouldSave)
-                {
-                    SaveResultsToDisk(layersVal, learningSettings, learningResult, regressionPlot, errorPlot, network);
-                }
-
-                if (reportingOptions.ShouldDisplay)
-                {
-                    DisplayResults(regressionPlot, errorPlot, learningResult);                 
                 }
             }
 
+            SaveResults();
             StartButton.IsEnabled = true;
         }
 
-        private static void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
+        private void ConfirmReportingSettings()
+        {
+            if (reportingOptions.ShouldDisplay && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
+            {
+                MessageBoxResult result = MessageBox.Show("Display results for " + (settingsToRun.Count * runsPerSettings).ToString() + "?"
+                    , "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.No)
+                {
+                    reportingOptions.ShouldDisplay = false;
+                }
+            }
+        }
+
+        private void SaveResults()
+        {
+            List<AggregateResult> aggregates = new List<AggregateResult>();
+            foreach(KeyValuePair<LearningSettings, List<ResultStorage>> kvp in resultsBySettings)
+            {
+                Vector<double> testSetErrors = new DenseVector(kvp.Value.Count);
+                Vector<double> testSetDirections = new DenseVector(kvp.Value.Count);
+                Vector<double> iterationsExecuted = new DenseVector(kvp.Value.Count);
+
+                for(int i = 0; i < kvp.Value.Count; i++) 
+                {
+                    ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
+                    testSetErrors[i] = kvp.Value[i].LearningResult.TestSetError;
+                    testSetDirections[i] = kvp.Value[i].LearningResult.TestSetDirectionGuessed;
+                    iterationsExecuted[i] = kvp.Value[i].LearningResult.IterationsExecuted;
+                }
+
+                aggregates.Add(new AggregateResult(kvp.Value.Count, testSetErrors, 
+                    testSetDirections, iterationsExecuted, kvp.Key, kvp.Value[0].Network)); // assume count >= 1
+            }
+
+            aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
+            SaveBatchReport(aggregates);
+        }
+
+        private void ProcessSingleResultEntry(LearningSettings settings, ResultStorage result)
+        {
+            PlotModel regressionPlot = Build1DRegressionModel(result.TrainSet, result.TestSet, plotAgainstInput);
+            ErrorPlotBuilder builder = new ErrorPlotBuilder(ERROR_SCALE);
+            PlotModel errorPlot = builder.SetUpModel(result.LearningResult.MSEHistory);
+            if (reportingOptions.ShouldSave)
+            {
+                SaveResultsToDisk(result.LayersVal, settings, result, regressionPlot, errorPlot, result.Network);
+            }
+
+            if (reportingOptions.ShouldDisplay)
+            {
+                DisplayResults(regressionPlot, errorPlot, result.LearningResult);
+            }
+        }
+
+        private void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
         {
             Window errorWindow = new NetworkErrorWindow(errorPlot);
             errorWindow.Show();
@@ -223,12 +274,12 @@ namespace Neural_Network
         }
 
         private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings, 
-            LearningResult learningResult, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
+            ResultStorage result, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
         {
-            DateTime now = DateTime.Now;
+            DateTime time = result.Time;
 
-            string datePrefix = now.ToShortDateString() + "_" + now.ToLongTimeString().Replace(":", "-") + 
-                string.Format("-{0}", now.Millisecond);
+            string datePrefix = time.ToShortDateString() + "_" + time.ToLongTimeString().Replace(":", "-") + 
+                string.Format("-{0}", time.Millisecond);
             string regressionFileName = datePrefix + "_regression.png";
             string regressionSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), regressionFileName);
             using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
@@ -250,7 +301,7 @@ namespace Neural_Network
             // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
 
             FileManager.SaveLearningInfo(infoSavePath,
-                GetResultInfo(learningSettings, learningResult, layersVal, network, now));
+                GetResultInfo(learningSettings, result.LearningResult, layersVal, network, time));
         }
 
         private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
@@ -263,11 +314,33 @@ namespace Neural_Network
             sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
             sb.AppendLine(System.IO.Path.GetFileName(dataSetPath));
             sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
-            sb.AppendFormat("Activation: {0}\r\n", network.Activation.Name);
             sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
             sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
             sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);
             return sb.ToString();
+        }
+
+        private void SaveBatchReport(List<AggregateResult> sortedAverages)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(AggregateResult ar in sortedAverages)
+            {
+                sb.AppendLine(ar.ToString());
+                sb.AppendLine();
+            }
+
+            DateTime time = DateTime.Now;
+            string datePrefix = time.ToShortDateString() + "_" + time.ToLongTimeString().Replace(":", "-") +
+            string.Format("-{0}", time.Millisecond);
+            string reportName = datePrefix + "_REPORT.txt";
+            string reportPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), reportName);
+            using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
+            {
+                using(StreamWriter sw = new StreamWriter(fileStream))
+                {
+                    sw.Write(sb.ToString());
+                }
+            }
         }
 
         private ReportingOptions GetReportingOptions()
@@ -280,14 +353,16 @@ namespace Neural_Network
 
         private LearningSettings GetLearningSettingsFromUI()
         {
-            LearningSettings learnSettings = new LearningSettings();
-            learnSettings.MaxIterations = int.Parse(MaxIterations.Text);
-            learnSettings.BadIterations = BadIterations.Text == "" ? learnSettings.MaxIterations : int.Parse(BadIterations.Text);
-            learnSettings.LearningRate = double.Parse(LearningRate.Text);
-            learnSettings.Momentum = double.Parse(Momentum.Text);
-            learnSettings.ValidationSetSize = 0.2f;
+            LearningSettings lSettings = new LearningSettings();
+            lSettings.MaxIterations = int.Parse(MaxIterations.Text);
+            lSettings.BadIterations = BadIterations.Text == "" ? lSettings.MaxIterations : int.Parse(BadIterations.Text);
+            lSettings.LearningRate = double.Parse(LearningRate.Text);
+            lSettings.Momentum = double.Parse(Momentum.Text);
+            lSettings.ValidationSetSize = 0.2f;
+            lSettings.Activation = ((ActivationType)ActivationCombobox.SelectedItem == ActivationType.Bipolar) ?
+                (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
 
-            return learnSettings;
+            return lSettings;
         }
 
         private void CheckIfPerformPCA(INetwork network)
@@ -426,7 +501,7 @@ namespace Neural_Network
 
         public void SetStatusText(string text)
         {           
-            this.Title = string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count, text);
+            this.Title = string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count * runsPerSettings, text);
         }
 
         private class ReportingOptions
@@ -434,23 +509,5 @@ namespace Neural_Network
             public bool ShouldDisplay { get; set; }
             public bool ShouldSave { get; set; }
         }
-    }
-
-    public enum YesNo
-    {
-        Yes,
-        No
-    }
-
-    public enum ActivationFunction
-    {
-        Unipolar,
-        Bipolar
-    }
-
-    public enum PartIIProblemType
-    {
-        CTS,
-        Stock
     }
 }

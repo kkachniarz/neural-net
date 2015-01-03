@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SharpNN;
+using SharpNN.ActivationFunctions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +10,6 @@ namespace LearningNN.Learning
 {
     /// <summary>
     /// Settings concerning learning.  
-    /// The settings here never require rebuilding the data set (train and test sets are never changed).
     /// </summary>
     public class LearningSettings
     {
@@ -18,6 +19,7 @@ namespace LearningNN.Learning
             "M",
             "MAXIT",
             "BADIT",
+            "FUNC",
         };
 
         public LearningSettings()
@@ -27,6 +29,7 @@ namespace LearningNN.Learning
             BadIterations = 10;
             LearningRate = 0.4;
             Momentum = 0.3;
+            Activation = null;
         }
 
         private LearningSettings(LearningSettings settings)
@@ -36,6 +39,7 @@ namespace LearningNN.Learning
             BadIterations = settings.BadIterations;
             LearningRate = settings.LearningRate;
             Momentum = settings.Momentum;
+            Activation = settings.Activation.Clone();
         }
 
         public LearningSettings Clone()
@@ -49,6 +53,7 @@ namespace LearningNN.Learning
         public double LearningRate { get; set; }
         public double Momentum { get; set; }
         public float ValidationSetSize { get; set; }
+        public IActivation Activation { get; set; }
 
         public void SetParamByTitle(string title, string value)
         {
@@ -66,6 +71,21 @@ namespace LearningNN.Learning
                 case "BADIT":
                     BadIterations = int.Parse(value);
                     break;
+                case "FUNC":
+                    if(value == "U")
+                    {
+                        Activation = new UnipolarSigmoidActivation();
+                    }
+                    else if(value == "B")
+                    {
+                        Activation = new BipolarTanhActivation();
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Unknown activation function specification");
+                    }
+
+                    break;
                 default:
                     throw new ArgumentException(string.Format("Unknown parameter title {0}", title));
             }
@@ -74,8 +94,8 @@ namespace LearningNN.Learning
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Learning Rate: {0}\r\nMomentum: {1}\r\nMax Iterations: {2}\r\nBad Iterations: {3}",
-                LearningRate, Momentum, MaxIterations, BadIterations);
+            sb.AppendFormat("Learning Rate: {0}\r\nMomentum: {1}\r\nMax Iterations: {2}\r\nBad Iterations: {3}\r\n Activation: {4}\r\nValidation Set Size: {5}",
+                LearningRate, Momentum, MaxIterations, BadIterations, Activation.Name, ValidationSetSize);
             return sb.ToString();
         }
     }

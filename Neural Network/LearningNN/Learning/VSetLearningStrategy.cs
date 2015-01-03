@@ -18,14 +18,13 @@ namespace LearningNN.Learning
         private int badIterations = 0;
         private int iteration = 0;
         private float vSetPercentage;
-        private int vSetEnd;
+        private int vSetStart;
 
         private double currentError = 1.0;
         private double previousError = 1.0;
         private double lowestError = double.MaxValue;
 
         private object savedWeights = null;
-        private List<object> debugSavedWeights = new List<object>();
 
         public VSetLearningStrategy(LearningSettings lSettings)
             : base(lSettings.LearningRate, lSettings.Momentum)
@@ -37,24 +36,14 @@ namespace LearningNN.Learning
 
         public override List<double> Train(INetwork network, IDataSet data, ILearningStatus statusHolder)
         {
-            vSetEnd = (int)(vSetPercentage * data.PatternCount);
+            vSetStart = (int)((1 - vSetPercentage) * data.PatternCount);
             return base.Train(network, data, statusHolder);
         }
 
         protected override double RunEpoch()
-        {
-            for (int i = vSetEnd; i < dataSet.PatternCount; i++) // train set (without validation set)
-            {
-                Pattern pattern = dataSet.GetPatternAt(i);
-                Vector<double> networkAnswer = network.ComputeOutput(pattern.Input);
-                Vector<double> modelAnswer = pattern.IdealOutput;
-
-                network.CalculateAndPropagateError(modelAnswer);
-                network.ImproveWeights(LearningRate, Momentum);
-            }
-
+        {            
+            DoTrainSetEpoch();
             currentError = CalculateMSEValidation();
-            debugSavedWeights.Add(network.SaveWeights());
 
             if(currentError < lowestError)
             {
@@ -85,6 +74,19 @@ namespace LearningNN.Learning
             return currentError;
         }
 
+        private void DoTrainSetEpoch()
+        {
+            for (int i = 0; i < vSetStart; i++) // train set (without validation set)
+            {
+                Pattern pattern = dataSet.GetPatternAt(i);
+                Vector<double> networkAnswer = network.ComputeOutput(pattern.Input);
+                Vector<double> modelAnswer = pattern.IdealOutput;
+
+                network.CalculateAndPropagateError(modelAnswer);
+                network.ImproveWeights(LearningRate, Momentum);
+            }
+        }
+
         protected override void UpdateStatus()
         {
             statusHolder.SetStatusText(string.Format("iter: {0}, error: {1}", iteration, errorHistory[errorHistory.Count - 1]));
@@ -93,25 +95,25 @@ namespace LearningNN.Learning
         private double CalculateMSEValidation()
         {
             double mse = 0.0;
-            for (int i = 0; i < vSetEnd; i++)
+            for (int i = vSetStart; i < dataSet.PatternCount; i++)
             {
                 Pattern p = dataSet.GetPatternAt(i);
                 mse += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
-            return MSECalculator.CalculateEpochMSE(mse, dataSet.PatternCount, network.Activation);
+            return MSECalculator.CalculateEpochMSE(mse, dataSet.PatternCount - vSetStart + 1, network.Activation);
         }
 
         private double CalculateMSETrain()
         {
             double mse = 0.0;
-            for (int i = vSetEnd; i < dataSet.PatternCount; i++)
+            for (int i = 0; i < vSetStart; i++)
             {
                 Pattern p = dataSet.GetPatternAt(i);
                 mse += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
-            return MSECalculator.CalculateEpochMSE(mse, dataSet.PatternCount, network.Activation);
+            return MSECalculator.CalculateEpochMSE(mse, vSetStart, network.Activation);
         }
     }
 }

@@ -19,5 +19,10 @@ namespace SharpNN.ActivationFunctions
         {
             get { return "Step"; }
         }
+
+        public IActivation Clone()
+        {
+            return new StepActivation();
+        }
     }
 }

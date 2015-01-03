@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Neural_Network
+namespace Shell
 {
     public static class FileManager
     {

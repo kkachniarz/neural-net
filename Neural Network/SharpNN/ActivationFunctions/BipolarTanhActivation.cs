@@ -25,5 +25,10 @@ namespace SharpNN.ActivationFunctions
         {
             get { return "Bipolar Tanh"; }
         }
+
+        public IActivation Clone()
+        {
+            return new BipolarTanhActivation();
+        }
     }
 }

@@ -19,5 +19,10 @@ namespace SharpNN.ActivationFunctions
         {
             get { return "Linear"; }
         }
+
+        public IActivation Clone()
+        {
+            return new LinearActivation();
+        }
     }
 }

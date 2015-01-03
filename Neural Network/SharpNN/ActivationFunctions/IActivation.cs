@@ -13,6 +13,8 @@ namespace SharpNN
         double Calc(double x);
         double CalcDerivative(double x);
 
+        IActivation Clone();
+
         string Name { get; }
     }
 }

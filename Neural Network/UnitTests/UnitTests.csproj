@@ -65,6 +65,7 @@
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="SaveWeightsTests.cs" />
     <Compile Include="DirectionErrorTests.cs" />
+    <Compile Include="StandardDeviationExtensionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LearningNN\LearningNN.csproj">
@@ -78,6 +79,10 @@
     <ProjectReference Include="..\SharpNN\SharpNN.csproj">
       <Project>{EDCC7124-68C9-40CE-A27D-330775D140A9}</Project>
       <Name>SharpNN</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Shell\Shell.csproj">
+      <Project>{8758f66e-5d7b-48e4-a820-0cd3a6ed5ace}</Project>
+      <Name>Shell</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

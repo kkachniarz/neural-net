@@ -24,5 +24,11 @@ namespace SharpNN.ActivationFunctions
         {
             get { return "Unipolar sigmoid"; }
         }
+
+
+        public IActivation Clone()
+        {
+            return new UnipolarSigmoidActivation();
+        }
     }
 }
