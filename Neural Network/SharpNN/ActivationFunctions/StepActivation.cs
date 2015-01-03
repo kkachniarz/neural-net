@@ -14,5 +14,10 @@ namespace SharpNN.ActivationFunctions
         {
             return 1;
         }
+
+        public string Name
+        {
+            get { return "Step"; }
+        }
     }
 }

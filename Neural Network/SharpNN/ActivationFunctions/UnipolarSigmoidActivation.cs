@@ -19,5 +19,10 @@ namespace SharpNN.ActivationFunctions
         {
             return x * (1.0 -x);
         }
+
+        public string Name
+        {
+            get { return "Unipolar sigmoid"; }
+        }
     }
 }

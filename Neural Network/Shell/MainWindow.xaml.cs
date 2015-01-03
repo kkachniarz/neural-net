@@ -202,7 +202,7 @@ namespace Neural_Network
                 PlotModel errorPlot = builder.SetUpModel(learningResult.MSEHistory);
                 if (reportingOptions.ShouldSave)
                 {
-                    SaveResultsToDisk(layersVal, learningSettings, learningResult, regressionPlot, errorPlot);
+                    SaveResultsToDisk(layersVal, learningSettings, learningResult, regressionPlot, errorPlot, network);
                 }
 
                 if (reportingOptions.ShouldDisplay)
@@ -223,7 +223,7 @@ namespace Neural_Network
         }
 
         private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings, 
-            LearningResult learningResult, PlotModel regressionPlot, PlotModel errorPlot)
+            LearningResult learningResult, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
         {
             DateTime now = DateTime.Now;
 
@@ -250,10 +250,10 @@ namespace Neural_Network
             // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
 
             FileManager.SaveLearningInfo(infoSavePath,
-                GetResultInfo(learningSettings, learningResult, layersVal, now));
+                GetResultInfo(learningSettings, learningResult, layersVal, network, now));
         }
 
-        private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, DateTime now)
+        private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(settings.ToString());
@@ -263,6 +263,7 @@ namespace Neural_Network
             sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
             sb.AppendLine(System.IO.Path.GetFileName(dataSetPath));
             sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
+            sb.AppendFormat("Activation: {0}\r\n", network.Activation.Name);
             sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
             sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
             sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);

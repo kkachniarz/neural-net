@@ -20,5 +20,10 @@ namespace SharpNN.ActivationFunctions
         {
             return 1.0 - Math.Pow(Calc(x), 2.0);
         }
+
+        public string Name
+        {
+            get { return "Bipolar Tanh"; }
+        }
     }
 }

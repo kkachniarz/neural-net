@@ -12,5 +12,7 @@ namespace SharpNN
         double MinValue { get; }
         double Calc(double x);
         double CalcDerivative(double x);
+
+        string Name { get; }
     }
 }
