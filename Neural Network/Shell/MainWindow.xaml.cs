@@ -135,7 +135,7 @@ namespace Neural_Network
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
-            int ctsPrevValuesCount = int.Parse(CTSPreviousValues.Text);
+            int ctsPrevValuesCount = 1; // int.Parse(CTSPreviousValues.Text); <- obsolete, never used (CT series depend only on 1 previous value...)
 
             PartIIProblemType problemType = csvLines[0].Count == 1 ? PartIIProblemType.CTS : PartIIProblemType.Stock;
 

@@ -9,7 +9,7 @@ namespace LearningNN
     public class Normalizor
     {
         const double EPSILON = 1E-5;
-        const double MARGIN_FACTOR = 0.22;
+        const double MARGIN_FACTOR = 0.2;
 
         private double maxValueFrom;
         private double minValueFrom;
