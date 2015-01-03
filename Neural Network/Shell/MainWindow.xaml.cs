@@ -42,7 +42,7 @@ namespace Shell
         private int runsPerSettings = 1;         
         private bool plotAgainstInput = false;
 
-        private Dictionary<LearningSettings, List<ResultStorage>> resultsBySettings = new Dictionary<LearningSettings, List<ResultStorage>>();
+        private Dictionary<LearningSettings, List<SingleRunReport>> resultsBySettings = new Dictionary<LearningSettings, List<SingleRunReport>>();
         
         ReportingOptions reportingOptions;
         List<DenseVector> csvLines;
@@ -157,7 +157,7 @@ namespace Shell
 
             foreach (LearningSettings learningSettings in settingsToRun)
             {
-                resultsBySettings[learningSettings] = new List<ResultStorage>();
+                resultsBySettings[learningSettings] = new List<SingleRunReport>();
                 for (int i = 0; i < runsPerSettings; i++) // repeat several times to average out the results
                 {
                     runCounter++;
@@ -202,7 +202,7 @@ namespace Shell
 
                     NormalizeDataBack(network, trainDataSet, testDataSet);
                     resultsBySettings[learningSettings].Add(
-                        new ResultStorage(learningResult, trainDataSet, testDataSet, network, layersVal, DateTime.Now));
+                        new SingleRunReport(learningResult, trainDataSet, testDataSet, network, layersVal, DateTime.Now));
 
                 }
             }
@@ -227,29 +227,25 @@ namespace Shell
         private void SaveResults()
         {
             List<AggregateResult> aggregates = new List<AggregateResult>();
-            foreach(KeyValuePair<LearningSettings, List<ResultStorage>> kvp in resultsBySettings)
+            int lsID = 0;
+            foreach(KeyValuePair<LearningSettings, List<SingleRunReport>> kvp in resultsBySettings)
             {
-                Vector<double> testSetErrors = new DenseVector(kvp.Value.Count);
-                Vector<double> testSetDirections = new DenseVector(kvp.Value.Count);
-                Vector<double> iterationsExecuted = new DenseVector(kvp.Value.Count);
+                lsID++;
 
                 for(int i = 0; i < kvp.Value.Count; i++) 
                 {
+                    kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
                     ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
-                    testSetErrors[i] = kvp.Value[i].LearningResult.TestSetError;
-                    testSetDirections[i] = kvp.Value[i].LearningResult.TestSetDirectionGuessed;
-                    iterationsExecuted[i] = kvp.Value[i].LearningResult.IterationsExecuted;
                 }
 
-                aggregates.Add(new AggregateResult(kvp.Value.Count, testSetErrors, 
-                    testSetDirections, iterationsExecuted, kvp.Key, kvp.Value[0].Network)); // assume count >= 1
+                aggregates.Add(new AggregateResult(kvp.Value, kvp.Key));
             }
 
             aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
             SaveBatchReport(aggregates);
         }
 
-        private void ProcessSingleResultEntry(LearningSettings settings, ResultStorage result)
+        private void ProcessSingleResultEntry(LearningSettings settings, SingleRunReport result)
         {
             PlotModel regressionPlot = Build1DRegressionModel(result.TrainSet, result.TestSet, plotAgainstInput);
             ErrorPlotBuilder builder = new ErrorPlotBuilder(ERROR_SCALE);
@@ -274,12 +270,11 @@ namespace Shell
         }
 
         private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings, 
-            ResultStorage result, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
+            SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
         {
-            DateTime time = result.Time;
+            DateTime time = report.Time;
 
-            string datePrefix = time.ToShortDateString() + "_" + time.ToLongTimeString().Replace(":", "-") + 
-                string.Format("-{0}", time.Millisecond);
+            string datePrefix = time.ToLongTimeString().Replace(":", "-") + "_" + report.Name;
             string regressionFileName = datePrefix + "_regression.png";
             string regressionSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), regressionFileName);
             using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
@@ -301,7 +296,7 @@ namespace Shell
             // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
 
             FileManager.SaveLearningInfo(infoSavePath,
-                GetResultInfo(learningSettings, result.LearningResult, layersVal, network, time));
+                GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
         }
 
         private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
@@ -323,6 +318,10 @@ namespace Shell
         private void SaveBatchReport(List<AggregateResult> sortedAverages)
         {
             StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Data set: {0}  Date {1}, time {2}\r\n", System.IO.Path.GetFileName(dataSetPath),
+                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString());
+            sb.AppendLine();
+
             foreach(AggregateResult ar in sortedAverages)
             {
                 sb.AppendLine(ar.ToString());

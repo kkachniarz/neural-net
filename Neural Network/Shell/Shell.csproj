@@ -110,7 +110,7 @@
     <Compile Include="Plotting\RegressionWindow.xaml.cs">
       <DependentUpon>RegressionWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plotting\ResultStorage.cs" />
+    <Compile Include="Plotting\SingleRunReport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

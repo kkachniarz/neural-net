@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Shell.Plotting
 {
-    public class ResultStorage
+    public class SingleRunReport
     {
-        public ResultStorage(LearningResult lres, IDataSet train, IDataSet test, INetwork net, List<int> lval, DateTime time)
+        public SingleRunReport(LearningResult lres, IDataSet train, IDataSet test, INetwork net, List<int> lval, DateTime time)
         {
             LearningResult = lres;
             TrainSet = train;
@@ -26,5 +26,7 @@ namespace Shell.Plotting
         public IDataSet TestSet;
         public INetwork Network;
         public List<int> LayersVal; // tmp, later should be moved to LearningSettings and required in parameters file
+
+        public string Name { get; set; }
     }
 }
