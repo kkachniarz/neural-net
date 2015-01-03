@@ -52,7 +52,6 @@ namespace Neural_Network
             InitializeComponent();
 
             NetworkTypeCombobox.ItemsSource = Enum.GetValues(typeof(NetworkType)).Cast<NetworkType>();
-            ProblemTypeCombobox.ItemsSource = Enum.GetValues(typeof(PartIIProblemType)).Cast<PartIIProblemType>();
             ActivationCombobox.ItemsSource = Enum.GetValues(typeof(ActivationFunction)).Cast<ActivationFunction>();
             BiasCombobox.ItemsSource = Enum.GetValues(typeof(YesNo)).Cast<YesNo>();
 
@@ -138,7 +137,7 @@ namespace Neural_Network
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
             int ctsPrevValuesCount = int.Parse(CTSPreviousValues.Text);
 
-            PartIIProblemType problemType = (PartIIProblemType)ProblemTypeCombobox.SelectedItem;
+            PartIIProblemType problemType = csvLines[0].Count == 1 ? PartIIProblemType.CTS : PartIIProblemType.Stock;
 
             reportingOptions = GetReportingOptions();
 
