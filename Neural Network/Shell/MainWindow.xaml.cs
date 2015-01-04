@@ -34,7 +34,7 @@ using System.Windows.Shapes;
 
 namespace Shell
 {
-    public partial class MainWindow : Window, IStatusReporter
+    public partial class MainWindow : Window
     {
         public bool IsReady { get { return csvLines != null; } }
 
@@ -44,8 +44,6 @@ namespace Shell
 
         private int runsPerSettings = 1;  
         private bool plotAgainstInput = false;
-
-        //private BackgroundWorker worker; // TODO: ?
 
         List<DenseVector> csvLines;
         List<LearningSettings> settingsToRun = new List<LearningSettings>();
