@@ -37,10 +37,12 @@ namespace Shell
         public bool IsReady { get { return csvLines != null; } }
 
         private const double ERROR_SCALE = 1000.0;
+        private const double DISCARD_FACTOR = 0.2;
         private const int DISPLAY_LIMIT = 10;
         private int runCounter = 0;
         private int runsPerSettings = 1;         
         private bool plotAgainstInput = false;
+        private string resultsDirectoryPath;
 
         private Dictionary<LearningSettings, List<SingleRunReport>> resultsBySettings = new Dictionary<LearningSettings, List<SingleRunReport>>();
         
@@ -130,6 +132,7 @@ namespace Shell
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
+            CreateResultsDirectory(DateTime.Now);
             StartButton.IsEnabled = false;
             runCounter = 0;
             runsPerSettings = int.Parse(RunsTextBox.Text);
@@ -202,7 +205,7 @@ namespace Shell
 
                     NormalizeDataBack(network, trainDataSet, testDataSet);
                     resultsBySettings[learningSettings].Add(
-                        new SingleRunReport(learningResult, trainDataSet, testDataSet, network, layersVal, DateTime.Now));
+                        new SingleRunReport(network, layersVal, DateTime.Now, learningResult, trainDataSet, testDataSet));
 
                 }
             }
@@ -232,6 +235,7 @@ namespace Shell
             {
                 lsID++;
 
+                kvp.Value.Sort((a, b) => Math.Sign(a.LearningResult.TestSetError - b.LearningResult.TestSetError)); // sort by errror asc
                 for(int i = 0; i < kvp.Value.Count; i++) 
                 {
                     kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
@@ -244,6 +248,12 @@ namespace Shell
             aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
             SaveBatchReport(aggregates);
         }
+
+        //private List<SingleRunReport> reports DiscardWorstRuns(List<SingleRunReport> reportsBestToWorst)
+        //{
+        //    HashSet<SingleRunReport> excludedReports;
+        //    List<SingleRunReport>
+        //}
 
         private void ProcessSingleResultEntry(LearningSettings settings, SingleRunReport result)
         {
@@ -274,23 +284,24 @@ namespace Shell
         {
             DateTime time = report.Time;
 
-            string datePrefix = time.ToLongTimeString().Replace(":", "-") + "_" + report.Name;
-            string regressionFileName = datePrefix + "_regression.png";
-            string regressionSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), regressionFileName);
+
+            string prefix = report.Name;
+            string regressionFileName = prefix + "_regression.png";
+            string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
             using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
             {
                 PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
             }
 
-            string errorFileName = datePrefix + "_error.png";
-            string errorSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), errorFileName);
+            string errorFileName = prefix + "_error.png";
+            string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
             using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
             {
                 PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
             }
 
-            string infoFileName = datePrefix + "_info.txt";
-            string infoSavePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), infoFileName);
+            string infoFileName = prefix + "_info.txt";
+            string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
             // TODO: calculating test set error, calculating how often the direction of change is predicted correctly
             // TODO: allow many executions for each configuration to calculate averages.
             // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
@@ -465,6 +476,13 @@ namespace Shell
             }
 
             FileManager.AppendDataToCSV(path, output);
+        }
+
+        private void CreateResultsDirectory(DateTime time)
+        {
+            string dirName = time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
+            resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
+            Directory.CreateDirectory(resultsDirectoryPath);
         }
 
         private PlotModel Build1DRegressionModel(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time

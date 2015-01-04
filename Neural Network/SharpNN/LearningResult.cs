@@ -20,7 +20,14 @@ namespace SharpNN
                 return MSEHistory.Count - 1;
             }
         }
-        // + data for plots
+
+        public double TrainError // last error in the history recorded during training. This will normally be the last error measured on the validation set.
+        {  
+            get
+            {
+                return MSEHistory[MSEHistory.Count - 1];
+            }
+        }
 
         public LearningResult()
         {
