@@ -113,9 +113,9 @@
 
         <StackPanel Grid.Row="15" Grid.Column="0" Name="CheckboxStackPanel" Orientation="Vertical">
             <CheckBox Name="ShowPlotsCheckbox" Content="Display plots"
-                Width="100" FontWeight="Bold" IsChecked="True"/>
+                Width="100" FontWeight="Bold" IsChecked="False"/>
             <CheckBox Name="SavePlotsCheckbox" Content="Save plots"
-                Width="100" FontWeight="Bold" IsChecked="True"/>
+                Width="100" FontWeight="Bold" IsChecked="False"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="15" Grid.Column="1">

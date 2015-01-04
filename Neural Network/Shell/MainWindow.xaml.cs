@@ -12,10 +12,12 @@ using RecursiveNN;
 using SharpNN;
 using SharpNN.ActivationFunctions;
 using SharpNN.Statistics;
+using Shell.Containers;
 using Shell.Enums;
 using Shell.Plotting;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -52,7 +54,10 @@ namespace Shell
         IDataSet testDataSet;
         IDataSet trainDataSet;
         ILearningStrategy learningStrategy;
+        private readonly BackgroundWorker worker = new BackgroundWorker();
+
         string dataSetPath;
+        string parametersFileName = "";
 
         public MainWindow()
         {
@@ -74,6 +79,7 @@ namespace Shell
             csvDlg.Filter = "TXT documents (.txt)|*.txt";
             csvDlg.Title = "Select a .txt file containing network parameters";
             string paramsPath = ReadFile(out shortName, csvDlg);
+            parametersFileName = shortName;
 
             if (paramsPath == null)
                 return;
@@ -81,7 +87,6 @@ namespace Shell
             ToggleAutomationRelatedSettings(false);
             settingsToRun = FileManager.RetrieveParameters(paramsPath);
             LoadParametersLabel.Content = shortName;
-            ShowPlotsCheckbox.IsChecked = false; // uncheck by default to avoid spamming windows
             // allow to unload parameters from UI
         }
 
@@ -132,6 +137,9 @@ namespace Shell
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
+            worker.DoWork += worker_DoWork;
+            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.ProgressChanged += worker_ProgressChanged;
             CreateResultsDirectory(DateTime.Now);
             StartButton.IsEnabled = false;
             runCounter = 0;
@@ -204,14 +212,35 @@ namespace Shell
                         learningStrategy, this);
 
                     NormalizeDataBack(network, trainDataSet, testDataSet);
-                    resultsBySettings[learningSettings].Add(
-                        new SingleRunReport(network, layersVal, DateTime.Now, learningResult, trainDataSet, testDataSet));
-
+                    resultsBySettings[learningSettings].Add(CreateSingleRunReport(layersVal, network, learningResult));
                 }
             }
 
             SaveResults();
             StartButton.IsEnabled = true;
+        }
+
+        void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private SingleRunReport CreateSingleRunReport(List<int> layersVal, INetwork network, LearningResult learningResult)
+        {
+            SingleRunReport report = reportingOptions.ShouldSave ?
+                new SingleRunReport(network, layersVal, DateTime.Now, learningResult)
+                : new SingleRunReport(network, layersVal, DateTime.Now, learningResult, trainDataSet, testDataSet);
+            return report;
         }
 
         private void ConfirmReportingSettings()
@@ -329,8 +358,10 @@ namespace Shell
         private void SaveBatchReport(List<AggregateResult> sortedAverages)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Data set: {0}  Date {1}, time {2}\r\n", System.IO.Path.GetFileName(dataSetPath),
-                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString());
+            sb.AppendFormat("Data set: {0}\r\nParams file: {1}\r\nDate {2}\r\nTime {3}\r\nRuns per settings: {4}", 
+                System.IO.Path.GetFileName(dataSetPath), parametersFileName,
+                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
+                runsPerSettings);
             sb.AppendLine();
 
             foreach(AggregateResult ar in sortedAverages)
@@ -339,11 +370,8 @@ namespace Shell
                 sb.AppendLine();
             }
 
-            DateTime time = DateTime.Now;
-            string datePrefix = time.ToShortDateString() + "_" + time.ToLongTimeString().Replace(":", "-") +
-            string.Format("-{0}", time.Millisecond);
-            string reportName = datePrefix + "_REPORT.txt";
-            string reportPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), reportName);
+            string reportName = "REPORT.txt";
+            string reportPath = System.IO.Path.Combine(resultsDirectoryPath, reportName);
             using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
             {
                 using(StreamWriter sw = new StreamWriter(fileStream))
@@ -521,10 +549,5 @@ namespace Shell
             this.Title = string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count * runsPerSettings, text);
         }
 
-        private class ReportingOptions
-        {
-            public bool ShouldDisplay { get; set; }
-            public bool ShouldSave { get; set; }
-        }
     }
 }

@@ -72,7 +72,7 @@ namespace Shell.Plotting
             //sb.AppendFormat("Worst direction guess factor: {0}\r\n", Directions.Min().ToString());
             //sb.AppendLine();
 
-            sb.AppendFormat("Run count: {0}\r\n", RunCount.ToString());
+            //sb.AppendFormat("Run count: {0}\r\n", RunCount.ToString());
             sb.AppendLine(SettingsUsed.ToString());
             sb.AppendFormat("Best error - run name: {0}\r\n", Reports[Errors.MinimumIndex()].Name);
             sb.AppendFormat("Best direction - run name: {0}\r\n", Reports[Directions.MaximumIndex()].Name);

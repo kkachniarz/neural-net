@@ -71,6 +71,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Containers\ReportingOptions.cs" />
+    <Compile Include="Engine.cs" />
+    <Compile Include="Containers\EngineInitData.cs" />
     <Compile Include="Plotting\AggregateResult.cs" />
     <Compile Include="Enums\ActivationType.cs" />
     <Compile Include="Enums\NetworkType.cs" />
