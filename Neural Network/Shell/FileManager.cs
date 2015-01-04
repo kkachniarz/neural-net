@@ -79,6 +79,12 @@ namespace Shell
             {
                 var line = reader.ReadLine(); // data
                 line = line.Replace(" ", "");
+                int commentIndex = line.IndexOf("//");
+                if(commentIndex > 0)
+                {
+                    line = line.Substring(0, commentIndex);
+                }
+
                 string[] values = line.Split(',', ':');
                 if(values.Length == 0)
                 {
@@ -88,7 +94,7 @@ namespace Shell
                 splitLines.Add(values);
             }
                        
-            Dictionary<string, List<string>> groupedParameters = PrepareParameterLists(splitLines);            
+            Dictionary<string, List<string>> groupedParameters = PrepareParameterLists(splitLines);
             return BuildSettings(groupedParameters, LearningSettings.RequiredTitles);
         }
 
@@ -101,7 +107,6 @@ namespace Shell
                     sw.Write(text);
                 }
             }
-
         }
 
         // TODO: refactor - move these methods outside FileManager class

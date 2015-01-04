@@ -91,10 +91,10 @@
         <TextBox Name="BadIterations" Grid.Row="6" Grid.Column="1" Text="5"/>
 
         <Label Grid.Row="7" Grid.Column="0" Content="Learning rate:" />
-        <TextBox Name="LearningRate" Grid.Row="7" Grid.Column="1" Text="0.3"/>
+        <TextBox Name="LearningRate" Grid.Row="7" Grid.Column="1" Text="0.4"/>
 
         <Label Grid.Row="8" Grid.Column="0" Content="Momentum:" />
-        <TextBox Name="Momentum" Grid.Row="8" Grid.Column="1" Text="0.3"/>
+        <TextBox Name="Momentum" Grid.Row="8" Grid.Column="1" Text="0.2"/>
 
         <Label Grid.Row="9" Grid.Column="0" Content="PCA:" />
         <TextBox Name="PCA" Grid.Row="9" Grid.Column="1" Text=""/>

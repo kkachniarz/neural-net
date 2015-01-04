@@ -2,6 +2,7 @@
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using SharpNN;
+using Shell.Containers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,18 +22,6 @@ namespace Shell.Plotting
 
         public LearningSettings SettingsUsed;
         public INetwork Network;
-
-        //public AggregateResult(int runs, Vector<double> errors, Vector<double> directions, Vector<double> iterationsExecuted,
-        //    LearningSettings settings, INetwork network)
-        //{
-        //    RunCount = runs;
-        //    SettingsUsed = settings;
-        //    Network = network;
-        //    Errors = errors.Clone();
-        //    Directions = directions.Clone();
-        //    Iterations = iterationsExecuted.Clone();
-        //    AverageError = Errors.Average();
-        //}
 
         public AggregateResult(List<SingleRunReport> reports, LearningSettings settings)
         {
@@ -57,11 +46,12 @@ namespace Shell.Plotting
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Avg. error: {0}   ({1})\r\n", Errors.Average().ToString("F6"), 
+            sb.AppendFormat("Error: M = {0}   SD = {1}\r\n", Errors.Average().ToString("F6"), 
                 Errors.StandardDeviation().ToString("F6"));
-            sb.AppendFormat("Avg. direction guessed: {0}   ({1})\r\n", Directions.Average().ToString("F6"), 
+            sb.AppendFormat("Direction guessed: M = {0}   SD = {1}\r\n", Directions.Average().ToString("F6"), 
                 Directions.StandardDeviation().ToString("F6"));
-            sb.AppendFormat("Avg. iterations executed: {0}\r\n", Iterations.Average().ToString("F1"));
+            sb.AppendFormat("Iterations executed: M = {0}  SD = {1}\r\n", Iterations.Average().ToString("F1"),
+                Iterations.StandardDeviation().ToString("F1"));
             sb.AppendLine();
 
             //sb.AppendFormat("Best error: {0}\r\n", Errors.Min().ToString());
@@ -74,8 +64,6 @@ namespace Shell.Plotting
 
             //sb.AppendFormat("Run count: {0}\r\n", RunCount.ToString());
             sb.AppendLine(SettingsUsed.ToString());
-            sb.AppendFormat("Best error - run name: {0}\r\n", Reports[Errors.MinimumIndex()].Name);
-            sb.AppendFormat("Best direction - run name: {0}\r\n", Reports[Directions.MaximumIndex()].Name);
             sb.AppendLine("-----------------");
 
             return sb.ToString();

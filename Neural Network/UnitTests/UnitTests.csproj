@@ -66,6 +66,7 @@
     <Compile Include="SaveWeightsTests.cs" />
     <Compile Include="DirectionErrorTests.cs" />
     <Compile Include="StandardDeviationExtensionTests.cs" />
+    <Compile Include="ListExtensionsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LearningNN\LearningNN.csproj">

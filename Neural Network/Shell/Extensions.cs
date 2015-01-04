@@ -21,6 +21,14 @@ namespace Shell
             return list;
         }
 
+        public static List<T> RemoveHighestValues<T>(this List<T> list, Func<T, double> valueFunc, int count)
+        {
+            List<T> sorted = list.OrderBy(x => valueFunc(x)).ToList();
+            sorted.RemoveRange(sorted.Count - count, count);
+            list.RemoveAll(x => !sorted.Contains(x));
+            return list;
+        }
+
         public static string ToCSVString(this DenseVector vector)
         {
             var sb = new StringBuilder();

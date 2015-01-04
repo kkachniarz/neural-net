@@ -14,6 +14,7 @@ namespace LearningNN.Learning
     {
         public int IterLimit { get; set; }
         public int MaxBadIterations { get; set; }
+        public int MinIterations { get; set; }
 
         private int badIterations = 0;
         private int iteration = 0;
@@ -32,6 +33,8 @@ namespace LearningNN.Learning
             this.vSetPercentage = lSettings.ValidationSetSize;
             this.MaxBadIterations = lSettings.BadIterations;
             this.IterLimit = lSettings.MaxIterations;
+            this.MinIterations = lSettings.MinIterations < lSettings.MaxIterations? 
+                lSettings.MinIterations : lSettings.MaxIterations;
         }
 
         public override List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
@@ -60,8 +63,7 @@ namespace LearningNN.Learning
                 badIterations = 0;
             }
 
-            if (badIterations > MaxBadIterations
-                || iteration > IterLimit)
+            if (ShouldStop())
             {
                 finished = true;
                 // restore the best weights
@@ -72,6 +74,12 @@ namespace LearningNN.Learning
             previousError = currentError;
             iteration++;
             return currentError;
+        }
+
+        private bool ShouldStop()
+        {
+            return (badIterations > MaxBadIterations && iteration >= MinIterations) 
+                || iteration > IterLimit;
         }
 
         private void DoTrainSetEpoch()

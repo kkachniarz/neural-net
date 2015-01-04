@@ -39,7 +39,7 @@ namespace Shell
         public bool IsReady { get { return csvLines != null; } }
 
         private const double ERROR_SCALE = 1000.0;
-        private const double DISCARD_FACTOR = 0.0;
+        private const double DISCARD_FACTOR = 0.2;
         private const int DISPLAY_LIMIT = 10;
 
         private int runsPerSettings = 1;  
@@ -53,7 +53,7 @@ namespace Shell
         BackgroundWorker worker;
 
         private string dataSetPath;
-        private string parametersFileName = "";
+        private string parametersFileName = "(not used)";
         private string resultsDirectoryPath;
 
         public MainWindow()
@@ -298,10 +298,14 @@ namespace Shell
         private void SaveBatchReport(List<AggregateResult> sortedAverages)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Data set: {0}\r\nParams file: {1}\r\nDate {2}\r\nTime {3}\r\nRuns per settings: {4}",
+            sb.AppendFormat(@"Data set: {0}
+Params file: {1}
+Date {2} Time {3}
+Runs per settings: {4}, discarding {5}% = {6} worst results per each settings",
                 System.IO.Path.GetFileName(eid.DataSetName), eid.ParametersFileName,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
-                eid.RunsPerSettings);
+                eid.RunsPerSettings, (eid.DiscardWorstFactor*100).ToString("F1"), engineResult.WorstDiscardedCount);
+            sb.AppendLine();
             sb.AppendLine("-------------------------------------------------------------------");
             sb.AppendLine();
 

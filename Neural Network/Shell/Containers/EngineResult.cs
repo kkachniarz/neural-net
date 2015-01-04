@@ -12,5 +12,6 @@ namespace Shell.Containers
     {
         public Dictionary<LearningSettings, List<SingleRunReport>> ResultsBySettings;
         public EngineInitData Eid;
+        public int WorstDiscardedCount;
     }
 }

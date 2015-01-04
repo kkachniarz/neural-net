@@ -13,32 +13,59 @@ namespace LearningNN.Learning
     /// </summary>
     public class LearningSettings
     {
-        public static readonly List<string> RequiredTitles = new List<string>()
+        private Dictionary<string, Action<string>> requiredParamParsers;
+        public int MaxIterations { get; set; }
+        public int BadIterations { get; set; }
+        public double LearningRate { get; set; }
+        public double Momentum { get; set; }
+        public float ValidationSetSize { get; set; }
+        public int MinIterations { get; set; }
+        public IActivation Activation { get; set; }
+
+        private static List<string> requiredTitles = new List<string>()
         {
             "LR",
             "M",
             "MAXIT",
-            "BADIT",
-            "FUNC",
+            "BADIT", 
+            "FUNC"
         };
+
+        public static List<string> RequiredTitles
+        {
+            get
+            {
+                return requiredTitles;
+            }
+        }
 
         public LearningSettings()
         {
             ValidationSetSize = 0.2f;
             MaxIterations = 2000;
+            MinIterations = 100;
             BadIterations = 10;
             LearningRate = 0.4;
             Momentum = 0.3;
             Activation = null;
+            requiredParamParsers = new Dictionary<string, Action<string>>()
+            {
+                {"LR", ParseLearningRate},
+                {"M", ParseMomentum},
+                {"MAXIT", ParseMaxIterations},
+                {"BADIT", ParseBadIterations},
+                {"FUNC", ParseActivationFunc},
+            };
         }
 
-        private LearningSettings(LearningSettings settings)
+        private LearningSettings(LearningSettings settings) : this()
         {
             ValidationSetSize = settings.ValidationSetSize;
             MaxIterations = settings.MaxIterations;
             BadIterations = settings.BadIterations;
             LearningRate = settings.LearningRate;
             Momentum = settings.Momentum;
+            MinIterations = settings.MinIterations;
             Activation = settings.Activation.Clone();
         }
 
@@ -48,55 +75,63 @@ namespace LearningNN.Learning
             return clone;
         }
 
-        public int MaxIterations { get; set; }
-        public int BadIterations { get; set; }
-        public double LearningRate { get; set; }
-        public double Momentum { get; set; }
-        public float ValidationSetSize { get; set; }
-        public IActivation Activation { get; set; }
-
         public void SetParamByTitle(string title, string value)
         {
-            switch(title) // could be refactored
+            if(!requiredParamParsers.ContainsKey(title))
             {
-                case "LR":
-                    LearningRate = double.Parse(value);
-                    break;
-                case "M":
-                    Momentum = double.Parse(value);
-                    break;
-                case "MAXIT":
-                    MaxIterations = int.Parse(value);
-                    break;
-                case "BADIT":
-                    BadIterations = int.Parse(value);
-                    break;
-                case "FUNC":
-                    if(value == "U")
-                    {
-                        Activation = new UnipolarSigmoidActivation();
-                    }
-                    else if(value == "B")
-                    {
-                        Activation = new BipolarTanhActivation();
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Unknown activation function specification");
-                    }
-
-                    break;
-                default:
-                    throw new ArgumentException(string.Format("Unknown parameter title {0}", title));
+                throw new ArgumentException(string.Format("Parameter name not recognized: {0}", title));
             }
+
+            requiredParamParsers[title](value);
         }
 
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Learning Rate: {0}\r\nMomentum: {1}\r\nMax Iterations: {2}\r\nBad Iterations: {3}\r\nActivation: {4}\r\nValidation Set Size: {5}",
-                LearningRate, Momentum, MaxIterations, BadIterations, Activation.Name, ValidationSetSize);
+            sb.AppendFormat(@"Learning Rate: {0}
+Momentum: {1}
+Iterations (Max/Bad/Min) {2}/{3}/{4}
+Activation: {5}
+Validation Set Size: {6}",
+                LearningRate, Momentum, MaxIterations, BadIterations, MinIterations, 
+                Activation.Name, ValidationSetSize);
             return sb.ToString();
+        }
+
+        private void ParseLearningRate(string str)
+        {
+            LearningRate = double.Parse(str);
+        }
+
+        private void ParseMomentum(string str)
+        {
+             Momentum = double.Parse(str);
+        }
+
+        private void ParseMaxIterations(string str)
+        {
+            MaxIterations = int.Parse(str);
+        }
+
+        private void ParseBadIterations(string str)
+        {
+             BadIterations = int.Parse(str);
+        }
+
+        private void ParseActivationFunc(string str)
+        {
+            if(str == "U")
+            {
+                Activation = new UnipolarSigmoidActivation();
+            }
+            else if(str == "B")
+            {
+                Activation = new BipolarTanhActivation();
+            }
+            else
+            {
+                throw new ArgumentException("Unknown activation function specification");
+            }
         }
     }
 }

@@ -29,6 +29,7 @@ namespace Shell
         public Dictionary<LearningSettings, List<SingleRunReport>> resultsBySettings 
             = new Dictionary<LearningSettings, List<SingleRunReport>>();
         private int runCounter;
+        private int discardCount;
 
         private IDataSet trainSet;
         private IDataSet testSet;
@@ -39,6 +40,7 @@ namespace Shell
         {
             this.eid = engineInitData;
             this.mainWindow = mainWindow;
+            discardCount = (int)(eid.DiscardWorstFactor * (double)eid.RunsPerSettings);
         }
 
         public EngineResult Run()
@@ -46,44 +48,12 @@ namespace Shell
             foreach (LearningSettings learningSettings in eid.SettingsToRun)
             {
                 resultsBySettings[learningSettings] = new List<SingleRunReport>();
-                for (int i = 0; i < eid.RunsPerSettings; i++) // repeat several times to average out the results
+                for (int i = 0; i < eid.RunsPerSettings; i++)
                 {
                     runCounter++;
-                    List<int> layersVal = new List<int>();
-
-                    layersVal.Add(eid.InputCount);   
-                    foreach (int neuronCount in eid.HiddenNeuronCounts)
-                    {
-                        layersVal.Add(neuronCount); // re-initialize layer counts -> TODO: Later layer counts should be also configurable in params file / learning settings
-                    }
-
-                    layersVal.Add(eid.OutputCount); // TODO: test if the numbers are correct here
-                                    
-
-                    if (eid.ProblemType == PartIIProblemType.CTS)
-                    {
-                        InitCTS(layersVal, eid.TrainSetPercentage);
-                    }
-                    else
-                    {
-                        InitStock(layersVal, eid.TrainSetPercentage);
-                    }
-                   
-                    INetwork network = null;
-                    switch (eid.NetworkType)
-                    {
-                        case NetworkType.MLP:
-                            network = new NeuralNetwork(learningSettings.Activation, eid.UseBiases, layersVal.ToArray());
-                            break;
-                        case NetworkType.Jordan:
-                            network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
-                            learningSettings.Activation, eid.UseBiases, layersVal[0], layersVal[1], layersVal[2]);
-                            break;
-                        case NetworkType.Elman:
-                            network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
-                            learningSettings.Activation, eid.UseBiases, layersVal[0], layersVal[1], layersVal[2]);
-                            break;
-                    }
+                    List<int> layersVal = BuildLayersVal();
+                    BuildDataSet(layersVal);
+                    INetwork network = CreateNetwork(learningSettings, layersVal);
 
                     NormalizeData(network, trainSet, testSet);
                     CheckIfPerformPCA(network);
@@ -96,12 +66,62 @@ namespace Shell
                     resultsBySettings[learningSettings].Add(new SingleRunReport(
                         network, layersVal, DateTime.Now, learningResult, trainSet, testSet));
                 }
+
+                resultsBySettings[learningSettings].RemoveHighestValues(
+                    r => r.LearningResult.TestSetError, discardCount);
             }
 
             EngineResult result = new EngineResult();
             result.ResultsBySettings = resultsBySettings;
             result.Eid = eid;
+            result.WorstDiscardedCount = discardCount;
             return result;
+        }
+
+        private List<int> BuildLayersVal()
+        {
+            List<int> ret = new List<int>();
+            ret.Add(eid.InputCount);
+            foreach (int neuronCount in eid.HiddenNeuronCounts)
+            {
+                ret.Add(neuronCount); //TODO: Later layer counts should be configurable in params file / learning settings
+            }
+
+            ret.Add(eid.OutputCount);
+            return ret;
+        }
+
+        private void BuildDataSet(List<int> layersVal)
+        {
+            if (eid.ProblemType == PartIIProblemType.CTS)
+            {
+                InitCTS(layersVal, eid.TrainSetPercentage);
+            }
+            else
+            {
+                InitStock(layersVal, eid.TrainSetPercentage);
+            }
+        }
+
+        private INetwork CreateNetwork(LearningSettings learningSettings, List<int> layersVal)
+        {
+            INetwork network = null;
+            switch (eid.NetworkType)
+            {
+                case NetworkType.MLP:
+                    network = new NeuralNetwork(learningSettings.Activation, eid.UseBiases, layersVal.ToArray());
+                    break;
+                case NetworkType.Jordan:
+                    network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
+                    learningSettings.Activation, eid.UseBiases, layersVal[0], layersVal[1], layersVal[2]);
+                    break;
+                case NetworkType.Elman:
+                    network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
+                    learningSettings.Activation, eid.UseBiases, layersVal[0], layersVal[1], layersVal[2]);
+                    break;
+            }
+
+            return network;
         }
 
         private void InitCTS(List<int> layersVal, float trainSetPercentage)
