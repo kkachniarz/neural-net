@@ -11,6 +11,9 @@ namespace LearningNN.Learning
 {
     public abstract class LearningStrategy : ILearningStrategy
     {
+        protected const int UPDATE_INTERVAL = 20;
+        int updateCounter;
+
         public double LearningRate { get; set; }
         public double Momentum { get; set; }
 
@@ -28,6 +31,7 @@ namespace LearningNN.Learning
 
         public virtual List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
         {
+            updateCounter = 0;
             this.network = network;
             this.dataSet = data;
             this.statusHolder = statusHolder;
@@ -36,7 +40,13 @@ namespace LearningNN.Learning
             while(!finished)
             {
                 errorHistory.Add(RunEpoch());
-                UpdateStatus();
+                if (updateCounter % UPDATE_INTERVAL == UPDATE_INTERVAL - 1)
+                {
+                    UpdateStatus();
+                    updateCounter = -1;
+                }
+
+                updateCounter++;
             }
 
             return errorHistory;

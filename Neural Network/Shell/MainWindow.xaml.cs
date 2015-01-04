@@ -52,6 +52,7 @@ namespace Shell
 
         EngineResult engineResult;
         EngineInitData eid;
+        BackgroundWorker worker;
 
         private string dataSetPath;
         private string parametersFileName = "";
@@ -186,11 +187,23 @@ namespace Shell
             ConfirmReportingSettings();
             CreateResultsDirectory(DateTime.Now);
 
-            Engine engine = new Engine(eid, this);
-            engineResult = engine.Run();
+            worker = new BackgroundWorker();
+            worker.DoWork += worker_DoWork;
+            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.RunWorkerAsync();
+        }
 
+        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            Title = "Done.";
             SaveResults();
             StartButton.IsEnabled = true;
+        }
+
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Engine engine = new Engine(eid, this);
+            engineResult = engine.Run();
         }
 
         private void ConfirmReportingSettings()

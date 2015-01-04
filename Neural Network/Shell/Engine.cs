@@ -171,7 +171,8 @@ namespace Shell
         {
             string message = string.Format("{0}/{1}: {2}", runCounter, 
                 eid.RunsPerSettings * eid.SettingsToRun.Count, text);
-            mainWindow.UpdateStatus(message);
+            mainWindow.Dispatcher.BeginInvoke((Action<string>)mainWindow.UpdateStatus,
+                DispatcherPriority.Background, message);
         }
     }
 }
