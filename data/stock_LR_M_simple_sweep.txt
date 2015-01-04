@@ -1,5 +1,5 @@
-LR: 0.2, 0.4, 0.6
-M: 0.0, 0.3 0.6
+LR: 0.2, 0.4, 0.6  // 3 learning rates x 3 momentums = 9 settings to test
+M: 0.0, 0.3, 0.6 // comments are allowed
 MAXIT: 1500
-BADIT: 15
-FUNC: B
+BADIT: 20
+FUNC: B // bipolar seems to work better than unipolar for stock
