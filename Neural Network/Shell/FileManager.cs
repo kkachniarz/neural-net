@@ -71,6 +71,13 @@ namespace Shell
             File.WriteAllLines(path, lines);
         }
 
+        /// <summary>
+        /// Create a list of all possible configurations based on the file provided.
+        /// That is, generate all possible combinations of settings
+        /// by combining values that are specified in the file.
+        /// </summary>
+        /// <param name="path">Path to parameters file</param>
+        /// <returns>All possible combinations of settings</returns>
         public static List<LearningSettings> RetrieveParameters(string path)
         {
             var reader = new StreamReader(path);

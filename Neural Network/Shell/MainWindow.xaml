@@ -107,7 +107,10 @@
         <Label Name="TrainSetLabel" Grid.Row="12" Grid.Column="1" 
                Content="..."/>
 
-        <Button Grid.Row="13" Grid.Column="0" Content="Load parameters" Click="ReadParameters"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="13" Grid.Column="0" >
+        <Button Content="Load parameters" Click="ReadParameters"/>
+            
+        </StackPanel>
         <Label Name="LoadParametersLabel" Grid.Row="13" Grid.Column="1" 
                Content="..."/>
 

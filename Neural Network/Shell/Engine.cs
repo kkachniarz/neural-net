@@ -23,6 +23,10 @@ using System.Windows.Threading;
 
 namespace Shell
 {
+    /// <summary>
+    /// Executes the learning N times, where N = runs_per_settings * how_many_different_settings_we_have,
+    /// and groups the results by learning settings.
+    /// </summary>
     public class Engine : IStatusReporter
     {
         private EngineInitData eid;

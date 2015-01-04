@@ -48,7 +48,14 @@ namespace Shell
         List<DenseVector> csvLines;
         List<LearningSettings> settingsToRun = new List<LearningSettings>();
 
+        /// <summary>
+        /// Contains results of learning
+        /// </summary>
         EngineResult engineResult;
+
+        /// <summary>
+        /// Contains configuration data for the learning engine
+        /// </summary>
         EngineInitData eid;
         BackgroundWorker worker;
 
@@ -204,6 +211,9 @@ namespace Shell
             engineResult = engine.Run();
         }
 
+        /// <summary>
+        /// Ask for confirmation if user requested a lot of windows.
+        /// </summary>
         private void ConfirmReportingSettings()
         {
             if (eid.ReportingOptions.ShouldDisplay && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
@@ -252,6 +262,16 @@ namespace Shell
             regressionWindow.Show();
         }
 
+        /// <summary>
+        /// Save results of a single learning (a single run) - just 1 network, 1 learning.
+        /// Saves error plot, regression plot, and info about the run.
+        /// </summary>
+        /// <param name="layersVal"></param>
+        /// <param name="learningSettings"></param>
+        /// <param name="report"></param>
+        /// <param name="regressionPlot"></param>
+        /// <param name="errorPlot"></param>
+        /// <param name="network"></param>
         private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings,
             SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
         {

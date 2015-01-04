@@ -90,7 +90,7 @@ namespace LearningNN.Learning
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat(@"Learning Rate: {0}
 Momentum: {1}
-Iterations (Max/Bad/Min) {2}/{3}/{4}
+Iteration limits: (Max/Bad/Min) {2}/{3}/{4}
 Activation: {5}
 Validation Set Size: {6}",
                 LearningRate, Momentum, MaxIterations, BadIterations, MinIterations, 

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Shell.Plotting
 {
+    /// <summary>
+    /// Contains data concerning a single execution (run) of learning.
+    /// </summary>
     public class SingleRunReport
     {
         public DateTime Time;
