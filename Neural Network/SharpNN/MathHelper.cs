@@ -9,7 +9,7 @@ namespace SharpNN
     public static class MathHelper
     {
         public static Random Rand = new Random();
-        private const double EPSILON = 0.00001;
+        private const double EPSILON = 0.01;
         public static double RandomExceptZero(double maxAbsValue, double epsilon = EPSILON)
         {
             AssertCanRandomize(maxAbsValue, epsilon);
@@ -29,9 +29,9 @@ namespace SharpNN
                 throw new ArgumentException("Maximum absolute value must be greater than 0");
             }
 
-            if(maxAbsValue <= epsilon)
+            if(maxAbsValue <= 0.8 * epsilon)
             {
-                throw new ArgumentException("Maximum absolute value must be greater than epsilon value");
+                throw new ArgumentException("Maximum absolute value must be greater than 0.8 * epsilon value");
             }
         }
     }

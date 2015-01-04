@@ -49,11 +49,11 @@ namespace Shell.Plotting
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Error: M = {0}   SD = {1}\r\n", Errors.Average().ToString("F8"), 
+            sb.AppendFormat("Test Set Error: M = {0}   SD = {1}\r\n", Errors.Average().ToString("F8"), 
                 Errors.StandardDeviation().ToString("F6"));
-            sb.AppendFormat("Direction guessed: M = {0}   SD = {1}\r\n", Directions.Average().ToString("F8"), 
+            sb.AppendFormat("Test Set Direction guessed: M = {0}   SD = {1}\r\n", Directions.Average().ToString("F8"), 
                 Directions.StandardDeviation().ToString("F6"));
-            sb.AppendFormat("Iterations executed: M = {0}  SD = {1}\r\n", Iterations.Average().ToString("F1"),
+            sb.AppendFormat("Iterations: M = {0}  SD = {1}\r\n", Iterations.Average().ToString("F1"),
                 Iterations.StandardDeviation().ToString("F1"));
             sb.AppendLine();
 
