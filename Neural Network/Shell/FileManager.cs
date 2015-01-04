@@ -80,7 +80,7 @@ namespace Shell
                 var line = reader.ReadLine(); // data
                 line = line.Replace(" ", "");
                 int commentIndex = line.IndexOf("//");
-                if(commentIndex > 0)
+                if(commentIndex >= 0)
                 {
                     line = line.Substring(0, commentIndex);
                 }
@@ -93,7 +93,7 @@ namespace Shell
 
                 splitLines.Add(values);
             }
-                       
+
             Dictionary<string, List<string>> groupedParameters = PrepareParameterLists(splitLines);
             return BuildSettings(groupedParameters, LearningSettings.RequiredTitles);
         }
