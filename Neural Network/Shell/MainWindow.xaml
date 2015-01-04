@@ -108,7 +108,8 @@
                Content="..."/>
 
         <StackPanel Orientation="Horizontal" Grid.Row="13" Grid.Column="0" >
-        <Button Content="Load parameters" Click="ReadParameters"/>
+        <Button Content="Load params" Name="LoadParamsBtn" Click="ReadParameters" Width="120"/>
+        <Button Content="X" Width="30" Name="UnloadParamsBtn" Click="UnloadParameters" Margin="0,0,5,0"/>
             
         </StackPanel>
         <Label Name="LoadParametersLabel" Grid.Row="13" Grid.Column="1" 

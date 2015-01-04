@@ -90,7 +90,24 @@ namespace Shell
 
             settingsToRun = FileManager.RetrieveParameters(paramsPath);
             LoadParametersLabel.Content = shortName;
-            // allow to unload parameters from UI
+            ToggleAutomationRelatedSettings(false);
+        }
+
+        private void UnloadParameters(object sender, RoutedEventArgs e)
+        {
+            settingsToRun.Clear();
+            parametersFileName = "(not used)";
+            ToggleAutomationRelatedSettings(true);
+            LoadParametersLabel.Content = "...";
+        }
+
+        private void ToggleAutomationRelatedSettings(bool on)
+        {
+            Momentum.IsEnabled = on;
+            LearningRate.IsEnabled = on;
+            MaxIterations.IsEnabled = on;
+            BadIterations.IsEnabled = on;
+            ActivationCombobox.IsEnabled = on;
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -412,6 +429,5 @@ Runs per settings: {4}, discarding {5}% = {6} worst results per each settings",
 
             FileManager.AppendDataToCSV(path, output);
         }
-
     }
 }

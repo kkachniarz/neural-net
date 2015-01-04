@@ -43,7 +43,7 @@ namespace LearningNN.Learning
         {
             ValidationSetSize = 0.2f;
             MaxIterations = 2000;
-            MinIterations = 100;
+            MinIterations = 50;
             BadIterations = 10;
             LearningRate = 0.4;
             Momentum = 0.3;

@@ -79,7 +79,7 @@ namespace LearningNN.Learning
         private bool ShouldStop()
         {
             return (badIterations > MaxBadIterations && iteration >= MinIterations) 
-                || iteration > IterLimit;
+                || iteration >= IterLimit;
         }
 
         private void DoTrainSetEpoch()
