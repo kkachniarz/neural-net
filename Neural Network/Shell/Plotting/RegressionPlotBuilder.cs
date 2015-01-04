@@ -1,4 +1,5 @@
-﻿using OxyPlot;
+﻿using LearningNN.DataSet;
+using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using SharpNN.Statistics;
@@ -12,7 +13,37 @@ namespace Shell.Plotting
 {
     public class RegressionPlotBuilder
     {
-        public PlotModel SetUpModel(List<RegressionPoint> trainingPoints, List<RegressionPoint> idealAnswer, List<RegressionPoint> networkAnswer)
+        public PlotModel Build1DRegressionModel(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time
+        {
+            List<RegressionPoint> trainPoints = new List<RegressionPoint>();
+            List<RegressionPoint> testIdealPoints = new List<RegressionPoint>();
+            List<RegressionPoint> networkAnswers = new List<RegressionPoint>();
+            Func<Pattern, double> patternToDouble;
+            if (plotAgainstInput)
+            {
+                patternToDouble = p => p.Input[0];
+            }
+            else
+            {
+                patternToDouble = p => p.TimeIndex;
+            }
+
+            foreach (Pattern p in trainingSet.EnumeratePatterns())
+            {
+                trainPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
+            }
+
+            foreach (Pattern p in testSet.EnumeratePatterns())
+            {
+                testIdealPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
+                networkAnswers.Add(new RegressionPoint(patternToDouble(p), p.NetworkAnswer.At(0)));
+            }
+
+            PlotModel regressionPlotModel = SetUpModel(trainPoints, testIdealPoints, networkAnswers);
+            return regressionPlotModel;
+        }
+
+        private PlotModel SetUpModel(List<RegressionPoint> trainingPoints, List<RegressionPoint> idealAnswer, List<RegressionPoint> networkAnswer)
         {
             PlotModel plotModel = new PlotModel();
             trainingPoints = trainingPoints.OrderBy(a => a.X).ToList();

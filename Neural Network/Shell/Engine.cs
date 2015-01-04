@@ -18,30 +18,31 @@ using RecursiveNN;
 using OxyPlot.Wpf;
 using System.Windows;
 using Neural_Network.Plotting;
+using System.ComponentModel;
+using System.Windows.Threading;
 
 namespace Shell
 {
-    public class Engine
+    public class Engine : IStatusReporter
     {
         private EngineInitData eid;
         public Dictionary<LearningSettings, List<SingleRunReport>> resultsBySettings 
             = new Dictionary<LearningSettings, List<SingleRunReport>>();
         private int runCounter;
-        private string resultsDirectoryPath;
 
         private IDataSet trainSet;
         private IDataSet testSet;
         private ILearningStrategy learningStrategy;
+        private MainWindow mainWindow;
 
-        public Engine(EngineInitData engineInitData)
+        public Engine(EngineInitData engineInitData, MainWindow mainWindow)
         {
             this.eid = engineInitData;
+            this.mainWindow = mainWindow;
         }
 
-        public void Run()
+        public EngineResult Run()
         {
-            CreateResultsDirectory(DateTime.Now);
-
             foreach (LearningSettings learningSettings in eid.SettingsToRun)
             {
                 resultsBySettings[learningSettings] = new List<SingleRunReport>();
@@ -89,52 +90,18 @@ namespace Shell
                     learningStrategy = new VSetLearningStrategy(learningSettings);
 
                     var learningResult = BackpropagationManager.Run(network, trainSet, testSet,
-                        learningStrategy, null); // TODO: fix reporting (text update)
+                        learningStrategy, this);
 
                     NormalizeDataBack(network, trainSet, testSet);
-                    resultsBySettings[learningSettings].Add(CreateSingleRunReport(layersVal, network, learningResult));
+                    resultsBySettings[learningSettings].Add(new SingleRunReport(
+                        network, layersVal, DateTime.Now, learningResult, trainSet, testSet));
                 }
             }
 
-            SaveResults();
-        }
-
-        private void CreateResultsDirectory(DateTime time)
-        {
-            string dirName = time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
-            resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
-            Directory.CreateDirectory(resultsDirectoryPath);
-        }
-
-        private PlotModel Build1DRegressionModel(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time
-        {
-            List<RegressionPoint> trainPoints = new List<RegressionPoint>();
-            List<RegressionPoint> testIdealPoints = new List<RegressionPoint>();
-            List<RegressionPoint> networkAnswers = new List<RegressionPoint>();
-            Func<Pattern, double> patternToDouble;
-            if (plotAgainstInput)
-            {
-                patternToDouble = p => p.Input[0];
-            }
-            else
-            {
-                patternToDouble = p => p.TimeIndex;
-            }
-
-            foreach (Pattern p in trainingSet.EnumeratePatterns())
-            {
-                trainPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
-            }
-
-            foreach (Pattern p in testSet.EnumeratePatterns())
-            {
-                testIdealPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
-                networkAnswers.Add(new RegressionPoint(patternToDouble(p), p.NetworkAnswer.At(0)));
-            }
-
-            RegressionPlotBuilder builder = new RegressionPlotBuilder();
-            PlotModel regressionPlotModel = builder.SetUpModel(trainPoints, testIdealPoints, networkAnswers);
-            return regressionPlotModel;
+            EngineResult result = new EngineResult();
+            result.ResultsBySettings = resultsBySettings;
+            result.Eid = eid;
+            return result;
         }
 
         private void InitCTS(List<int> layersVal, float trainSetPercentage)
@@ -200,139 +167,11 @@ namespace Shell
             trainData.NormalizeBack();
         }
 
-        private void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
+        public void UpdateStatus(string text)
         {
-            Window errorWindow = new NetworkErrorWindow(errorPlot);
-            errorWindow.Show();
-            Window regressionWindow = new RegressionWindow(regressionPlot, learningResult);
-            regressionWindow.Show();
-        }
-
-        private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings,
-            SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
-        {
-            DateTime time = report.Time;
-
-
-            string prefix = report.Name;
-            string regressionFileName = prefix + "_regression.png";
-            string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
-            using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
-            {
-                PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
-            }
-
-            string errorFileName = prefix + "_error.png";
-            string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
-            using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
-            {
-                PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
-            }
-
-            string infoFileName = prefix + "_info.txt";
-            string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
-            // TODO: calculating test set error, calculating how often the direction of change is predicted correctly
-            // TODO: allow many executions for each configuration to calculate averages.
-            // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
-
-            FileManager.SaveLearningInfo(infoSavePath,
-                GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
-        }
-
-        private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(settings.ToString());
-            sb.Append(now.ToLongDateString());
-            sb.Append("  ");
-            sb.AppendLine(now.ToLongTimeString());
-            sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
-            sb.AppendLine(System.IO.Path.GetFileName(eid.DataSetName));
-            sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
-            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
-            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
-            sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);
-            return sb.ToString();
-        }
-
-        private void SaveBatchReport(List<AggregateResult> sortedAverages)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Data set: {0}\r\nParams file: {1}\r\nDate {2}\r\nTime {3}\r\nRuns per settings: {4}",
-                System.IO.Path.GetFileName(eid.DataSetName), eid.ParametersFileName,
-                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
-                eid.RunsPerSettings);
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-
-            foreach (AggregateResult ar in sortedAverages)
-            {
-                sb.AppendLine(ar.ToString());
-                sb.AppendLine();
-            }
-
-            string reportName = "REPORT.txt";
-            string reportPath = System.IO.Path.Combine(resultsDirectoryPath, reportName);
-            using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
-            {
-                using (StreamWriter sw = new StreamWriter(fileStream))
-                {
-                    sw.Write(sb.ToString());
-                }
-            }
-        }
-
-        private void SaveResults()
-        {
-            List<AggregateResult> aggregates = new List<AggregateResult>();
-            int lsID = 0;
-            foreach (KeyValuePair<LearningSettings, List<SingleRunReport>> kvp in resultsBySettings)
-            {
-                lsID++;
-
-                kvp.Value.Sort((a, b) => Math.Sign(a.LearningResult.TestSetError - b.LearningResult.TestSetError)); // sort by errror asc
-                for (int i = 0; i < kvp.Value.Count; i++)
-                {
-                    kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
-                    ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
-                }
-
-                aggregates.Add(new AggregateResult(kvp.Value, kvp.Key));
-            }
-
-            aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
-            SaveBatchReport(aggregates);
-        }
-
-        //private List<SingleRunReport> reports DiscardWorstRuns(List<SingleRunReport> reportsBestToWorst)
-        //{
-        //    HashSet<SingleRunReport> excludedReports;
-        //    List<SingleRunReport>
-        //}
-
-        private void ProcessSingleResultEntry(LearningSettings settings, SingleRunReport result)
-        {
-            PlotModel regressionPlot = Build1DRegressionModel(result.TrainSet, result.TestSet, eid.PlotAgainstInput);
-            ErrorPlotBuilder builder = new ErrorPlotBuilder(eid.ErrorScale);
-            PlotModel errorPlot = builder.SetUpModel(result.LearningResult.MSEHistory);
-            if (eid.ReportingOptions.ShouldSave)
-            {
-                SaveResultsToDisk(result.LayersVal, settings, result, regressionPlot, errorPlot, result.Network);
-            }
-
-            if (eid.ReportingOptions.ShouldDisplay)
-            {
-                DisplayResults(regressionPlot, errorPlot, result.LearningResult);
-            }
-        }
-
-        private SingleRunReport CreateSingleRunReport(List<int> layersVal, INetwork network, LearningResult learningResult)
-        {
-            SingleRunReport report = eid.ReportingOptions.ShouldSave ?
-                new SingleRunReport(network, layersVal, DateTime.Now, learningResult)
-                : new SingleRunReport(network, layersVal, DateTime.Now, learningResult, trainSet, testSet);
-            return report;
+            string message = string.Format("{0}/{1}: {2}", runCounter, 
+                eid.RunsPerSettings * eid.SettingsToRun.Count, text);
+            mainWindow.UpdateStatus(message);
         }
     }
 }

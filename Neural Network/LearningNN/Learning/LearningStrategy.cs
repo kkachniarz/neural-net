@@ -17,7 +17,7 @@ namespace LearningNN.Learning
         protected bool finished;
         protected INetwork network;
         protected IDataSet dataSet;
-        protected ILearningStatus statusHolder;
+        protected IStatusReporter statusHolder;
         protected List<double> errorHistory;
 
         public LearningStrategy(double learningRate, double momentum)
@@ -26,7 +26,7 @@ namespace LearningNN.Learning
             this.Momentum = momentum;
         }
 
-        public virtual List<double> Train(INetwork network, IDataSet data, ILearningStatus statusHolder)
+        public virtual List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
         {
             this.network = network;
             this.dataSet = data;

@@ -12,6 +12,6 @@ namespace LearningNN.Learning
     {
         double LearningRate { get; set; }
         double Momentum { get; set; }
-        List<double> Train(INetwork network, IDataSet dataSet, ILearningStatus statusHolder);
+        List<double> Train(INetwork network, IDataSet dataSet, IStatusReporter statusHolder);
     }
 }

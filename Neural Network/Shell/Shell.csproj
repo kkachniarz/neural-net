@@ -71,6 +71,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Containers\EngineResult.cs" />
     <Compile Include="Containers\ReportingOptions.cs" />
     <Compile Include="Engine.cs" />
     <Compile Include="Containers\EngineInitData.cs" />

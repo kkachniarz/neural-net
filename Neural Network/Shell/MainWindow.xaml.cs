@@ -34,7 +34,7 @@ using System.Windows.Shapes;
 
 namespace Shell
 {
-    public partial class MainWindow : Window, ILearningStatus
+    public partial class MainWindow : Window, IStatusReporter
     {
         public bool IsReady { get { return csvLines != null; } }
 
@@ -45,14 +45,17 @@ namespace Shell
         private int runsPerSettings = 1;  
         private bool plotAgainstInput = false;
 
-        ReportingOptions reportingOptions;
+        //private BackgroundWorker worker; // TODO: ?
+
         List<DenseVector> csvLines;
         List<LearningSettings> settingsToRun = new List<LearningSettings>();
 
-        private readonly BackgroundWorker worker = new BackgroundWorker();
+        EngineResult engineResult;
+        EngineInitData eid;
 
-        string dataSetPath;
-        string parametersFileName = "";
+        private string dataSetPath;
+        private string parametersFileName = "";
+        private string resultsDirectoryPath;
 
         public MainWindow()
         {
@@ -124,10 +127,6 @@ namespace Shell
         {
             StartButton.IsEnabled = false;
 
-            worker.DoWork += worker_DoWork;
-            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
-            worker.ProgressChanged += worker_ProgressChanged;
-
             runsPerSettings = int.Parse(RunsTextBox.Text);
             string[] layersText = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
@@ -138,9 +137,9 @@ namespace Shell
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
-            int ctsPrevValuesCount = 1;
+
             PartIIProblemType problemType = csvLines[0].Count == 1 ? PartIIProblemType.CTS : PartIIProblemType.Stock;
-            reportingOptions = GetReportingOptions();
+            ReportingOptions reportingOptions = GetReportingOptions();
 
             if (settingsToRun.Count == 0)
             {
@@ -152,9 +151,7 @@ namespace Shell
                 plotAgainstInput = true;
             }
 
-            ConfirmReportingSettings();
-
-            EngineInitData eid = new EngineInitData();
+            eid = new EngineInitData();
 
             eid.ErrorScale = ERROR_SCALE;
             eid.DiscardWorstFactor = DISCARD_FACTOR;
@@ -186,37 +183,25 @@ namespace Shell
             eid.DataSetName = dataSetPath;
             eid.ParametersFileName = parametersFileName;
 
-            Engine engine = new Engine(eid);
-            // TODO: in a worker
-            engine.Run();
-         
+            ConfirmReportingSettings();
+            CreateResultsDirectory(DateTime.Now);
+
+            Engine engine = new Engine(eid, this);
+            engineResult = engine.Run();
+
+            SaveResults();
             StartButton.IsEnabled = true;
-        }
-
-        void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        void worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         private void ConfirmReportingSettings()
         {
-            if (reportingOptions.ShouldDisplay && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
+            if (eid.ReportingOptions.ShouldDisplay && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
             {
                 MessageBoxResult result = MessageBox.Show("Display results for " + (settingsToRun.Count * runsPerSettings).ToString() + "?"
                     , "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.No)
                 {
-                    reportingOptions.ShouldDisplay = false;
+                    eid.ReportingOptions.ShouldDisplay = false;
                 }
             }
         }
@@ -243,6 +228,141 @@ namespace Shell
             return lSettings;
         }
 
+        public void UpdateStatus(string text)
+        {
+            this.Title = text;
+        }
+
+        private void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
+        {
+            Window errorWindow = new NetworkErrorWindow(errorPlot);
+            errorWindow.Show();
+            Window regressionWindow = new RegressionWindow(regressionPlot, learningResult);
+            regressionWindow.Show();
+        }
+
+        private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings,
+            SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
+        {
+            DateTime time = report.Time;
+
+            string prefix = report.Name;
+            string regressionFileName = prefix + "_regression.png";
+            string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
+            using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
+            {
+                PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
+            }
+
+            string errorFileName = prefix + "_error.png";
+            string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
+            using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
+            {
+                PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
+            }
+
+            string infoFileName = prefix + "_info.txt";
+            string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
+
+            FileManager.SaveLearningInfo(infoSavePath,
+                GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
+        }
+
+        private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(settings.ToString());
+            sb.Append(now.ToLongDateString());
+            sb.Append("  ");
+            sb.AppendLine(now.ToLongTimeString());
+            sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
+            sb.AppendLine(System.IO.Path.GetFileName(eid.DataSetName));
+            sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
+            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
+            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
+            sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);
+            return sb.ToString();
+        }
+
+        private void SaveBatchReport(List<AggregateResult> sortedAverages)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Data set: {0}\r\nParams file: {1}\r\nDate {2}\r\nTime {3}\r\nRuns per settings: {4}",
+                System.IO.Path.GetFileName(eid.DataSetName), eid.ParametersFileName,
+                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
+                eid.RunsPerSettings);
+            sb.AppendLine("-------------------------------------------------------------------");
+            sb.AppendLine();
+
+            foreach (AggregateResult ar in sortedAverages)
+            {
+                sb.AppendLine(ar.ToString());
+                sb.AppendLine();
+            }
+
+            string reportName = "REPORT.txt";
+            string reportPath = System.IO.Path.Combine(resultsDirectoryPath, reportName);
+            using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
+            {
+                using (StreamWriter sw = new StreamWriter(fileStream))
+                {
+                    sw.Write(sb.ToString());
+                }
+            }
+        }
+
+        private void SaveResults()
+        {
+            List<AggregateResult> aggregates = new List<AggregateResult>();
+            int lsID = 0;
+            foreach (KeyValuePair<LearningSettings, List<SingleRunReport>> kvp in engineResult.ResultsBySettings)
+            {
+                lsID++;
+
+                kvp.Value.Sort((a, b) => Math.Sign(a.LearningResult.TestSetError - b.LearningResult.TestSetError)); // sort by errror asc
+                for (int i = 0; i < kvp.Value.Count; i++)
+                {
+                    kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
+                    ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
+                }
+
+                aggregates.Add(new AggregateResult(kvp.Value, kvp.Key));
+            }
+
+            aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
+            SaveBatchReport(aggregates);
+        }
+
+        //private List<SingleRunReport> reports DiscardWorstRuns(List<SingleRunReport> reportsBestToWorst)
+        //{
+        //    HashSet<SingleRunReport> excludedReports;
+        //    List<SingleRunReport>
+        //}
+
+        private void ProcessSingleResultEntry(LearningSettings settings, SingleRunReport result)
+        {
+            RegressionPlotBuilder regressionBuilder = new RegressionPlotBuilder();
+            PlotModel regressionPlot = regressionBuilder.Build1DRegressionModel(result.TrainSet, result.TestSet, eid.PlotAgainstInput);
+            ErrorPlotBuilder errorBuilder = new ErrorPlotBuilder(eid.ErrorScale);
+            PlotModel errorPlot = errorBuilder.SetUpModel(result.LearningResult.MSEHistory);
+            if (eid.ReportingOptions.ShouldSave)
+            {
+                SaveResultsToDisk(result.LayersVal, settings, result, regressionPlot, errorPlot, result.Network);
+            }
+
+            if (eid.ReportingOptions.ShouldDisplay)
+            {
+                DisplayResults(regressionPlot, errorPlot, result.LearningResult);
+            }
+        }
+
+        private void CreateResultsDirectory(DateTime time)
+        {
+            string dirName = time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
+            resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
+            Directory.CreateDirectory(resultsDirectoryPath);
+        }
+
         private void AppendCSVile(string path, CasesData data)
         {
             var output = new List<DenseVector>();
@@ -256,11 +376,6 @@ namespace Shell
             }
 
             FileManager.AppendDataToCSV(path, output);
-        }
-
-        public void SetStatusText(string text)
-        {
-            this.Title = "INVALID"; // string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count * runsPerSettings, text);
         }
 
     }

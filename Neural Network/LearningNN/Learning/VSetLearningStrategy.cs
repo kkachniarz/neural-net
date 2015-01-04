@@ -34,7 +34,7 @@ namespace LearningNN.Learning
             this.IterLimit = lSettings.MaxIterations;
         }
 
-        public override List<double> Train(INetwork network, IDataSet data, ILearningStatus statusHolder)
+        public override List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
         {
             vSetStart = (int)((1 - vSetPercentage) * data.PatternCount);
             return base.Train(network, data, statusHolder);
@@ -89,8 +89,8 @@ namespace LearningNN.Learning
 
         protected override void UpdateStatus()
         {
-            // TODO: rewrite
-            //statusHolder.SetStatusText(string.Format("iter: {0}, error: {1}", iteration, errorHistory[errorHistory.Count - 1]));
+            statusHolder.UpdateStatus(string.Format("iter {0} / {1}, VSet err: {2}",
+                iteration, IterLimit, errorHistory[errorHistory.Count - 1]));
         }
 
         private double CalculateMSEValidation()

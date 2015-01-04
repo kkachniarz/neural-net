@@ -17,7 +17,7 @@ namespace LearningNN
     public static class BackpropagationManager
     {
         public static LearningResult Run(INetwork network, IDataSet trainData, IDataSet testData,
-            ILearningStrategy learningStrategy, ILearningStatus statusHolder)
+            ILearningStrategy learningStrategy, IStatusReporter statusHolder)
         {
             //AssertArguments(trainData, testData, learningRate); // TODO: write assertions
 

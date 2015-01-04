@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace LearningNN.Learning
 {
-    public interface ILearningStatus
+    public interface IStatusReporter
     {
-        void SetStatusText(string text);
+        void UpdateStatus(string text);
     }
 }
