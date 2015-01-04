@@ -67,7 +67,6 @@ namespace Shell
                     {
                         InitStock(layersVal, eid.TrainSetPercentage);
                     }
-
                    
                     INetwork network = null;
                     switch (eid.NetworkType)
@@ -161,7 +160,7 @@ namespace Shell
         private void InitStock(List<int> layersVal, float trainSetPercentage)
         {
             int trainSetEndIndex = (int)(trainSetPercentage * eid.CsvLines.Count);
-            List<DenseVector> allInputs = eid.CsvLines.Select(v => v.CreateSubVector(0, eid.OutputCount)).ToList();
+            List<DenseVector> allInputs = eid.CsvLines.Select(v => v.CreateSubVector(0, eid.InputCount)).ToList();
             List<DenseVector> allOutputs = eid.CsvLines.Select(v => v.CreateSubVector(eid.InputCount, eid.OutputCount)).ToList();
 
             trainSet = new StockDataSet(allInputs.ExtractList(0, trainSetEndIndex),

@@ -94,7 +94,7 @@ namespace LearningNN.Learning
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Learning Rate: {0}\r\nMomentum: {1}\r\nMax Iterations: {2}\r\nBad Iterations: {3}\r\n Activation: {4}\r\nValidation Set Size: {5}",
+            sb.AppendFormat("Learning Rate: {0}\r\nMomentum: {1}\r\nMax Iterations: {2}\r\nBad Iterations: {3}\r\nActivation: {4}\r\nValidation Set Size: {5}",
                 LearningRate, Momentum, MaxIterations, BadIterations, Activation.Name, ValidationSetSize);
             return sb.ToString();
         }

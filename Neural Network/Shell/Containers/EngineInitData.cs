@@ -35,7 +35,6 @@ namespace Shell.Containers
         public List<DenseVector> CsvLines;
         public List<LearningSettings> SettingsToRun = new List<LearningSettings>();
 
-        public string ResultsDirectoryPath;
         public string DataSetName;
         public string ParametersFileName;
     }

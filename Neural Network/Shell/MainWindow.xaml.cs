@@ -41,19 +41,14 @@ namespace Shell
         private const double ERROR_SCALE = 1000.0;
         private const double DISCARD_FACTOR = 0.0;
         private const int DISPLAY_LIMIT = 10;
-        private int runCounter = 0;
-        private int runsPerSettings = 1;         
-        private bool plotAgainstInput = false;
-        private string resultsDirectoryPath;
 
-        private Dictionary<LearningSettings, List<SingleRunReport>> resultsBySettings = new Dictionary<LearningSettings, List<SingleRunReport>>();
-        
+        private int runsPerSettings = 1;  
+        private bool plotAgainstInput = false;
+
         ReportingOptions reportingOptions;
         List<DenseVector> csvLines;
         List<LearningSettings> settingsToRun = new List<LearningSettings>();
-        IDataSet testDataSet;
-        IDataSet trainDataSet;
-        ILearningStrategy learningStrategy;
+
         private readonly BackgroundWorker worker = new BackgroundWorker();
 
         string dataSetPath;
@@ -133,7 +128,6 @@ namespace Shell
             worker.RunWorkerCompleted += worker_RunWorkerCompleted;
             worker.ProgressChanged += worker_ProgressChanged;
 
-            runCounter = 0;
             runsPerSettings = int.Parse(RunsTextBox.Text);
             string[] layersText = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
@@ -144,7 +138,7 @@ namespace Shell
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
             NetworkType networkType = (NetworkType)NetworkTypeCombobox.SelectedItem;
-            int ctsPrevValuesCount = 1; // int.Parse(CTSPreviousValues.Text); <- obsolete, never used (CT series depend only on 1 previous value...)
+            int ctsPrevValuesCount = 1;
             PartIIProblemType problemType = csvLines[0].Count == 1 ? PartIIProblemType.CTS : PartIIProblemType.Stock;
             reportingOptions = GetReportingOptions();
 
@@ -189,7 +183,6 @@ namespace Shell
             eid.CsvLines = csvLines;
             eid.SettingsToRun = settingsToRun;
 
-            eid.ResultsDirectoryPath = resultsDirectoryPath;
             eid.DataSetName = dataSetPath;
             eid.ParametersFileName = parametersFileName;
 
@@ -265,10 +258,9 @@ namespace Shell
             FileManager.AppendDataToCSV(path, output);
         }
 
-
         public void SetStatusText(string text)
-        {           
-            this.Title = string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count * runsPerSettings, text);
+        {
+            this.Title = "INVALID"; // string.Format("{0} / {1}: {2}", runCounter, settingsToRun.Count * runsPerSettings, text);
         }
 
     }
