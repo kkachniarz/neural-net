@@ -1,6 +1,7 @@
 ﻿using LearningNN.DataSet;
 using LearningNN.Learning;
 using MathNet.Numerics.LinearAlgebra.Double;
+using Shell.Enums;
 using Shell.Plotting;
 using System;
 using System.Collections.Generic;
@@ -12,24 +13,30 @@ namespace Shell.Containers
 {
     public class EngineInitData
     {
-        public const double ERROR_SCALE = 1000.0;
-        public const double DISCARD_FACTOR = 0.2;
-        public const int DISPLAY_LIMIT = 10;
-        public int RunCounter = 0;
-        public int RunsPerSettings = 1;
-        public bool PlotAgainstInput = false;
-        public string ResultsDirectoryPath;
+        public double ErrorScale;
+        public double DiscardWorstFactor;
+        public float TrainSetPercentage;
 
-        public Dictionary<LearningSettings, List<SingleRunReport>> resultsBySettings = new Dictionary<LearningSettings, List<SingleRunReport>>();
+        public int CtsPrevValuesCount;
+        public int OutputCount;
+        public int InputCount;
+        public int PcaDimensions;
+        public int RunsPerSettings;
+
+        public bool UseBiases;
+        public bool PlotAgainstInput;
+
+        public NetworkType NetworkType;
+        public PartIIProblemType ProblemType;
 
         public ReportingOptions ReportingOptions;
+
+        public List<int> HiddenNeuronCounts;
         public List<DenseVector> CsvLines;
         public List<LearningSettings> SettingsToRun = new List<LearningSettings>();
-        public IDataSet TestDataSet;
-        public IDataSet TrainDataSet;
-        public ILearningStrategy LearningStrategy;
 
+        public string ResultsDirectoryPath;
         public string DataSetName;
-        public string ParametersFileName = "";
+        public string ParametersFileName;
     }
 }

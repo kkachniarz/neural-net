@@ -39,7 +39,7 @@ namespace Shell
         public bool IsReady { get { return csvLines != null; } }
 
         private const double ERROR_SCALE = 1000.0;
-        private const double DISCARD_FACTOR = 0.2;
+        private const double DISCARD_FACTOR = 0.0;
         private const int DISPLAY_LIMIT = 10;
         private int runCounter = 0;
         private int runsPerSettings = 1;         
@@ -84,19 +84,9 @@ namespace Shell
             if (paramsPath == null)
                 return;
 
-            ToggleAutomationRelatedSettings(false);
             settingsToRun = FileManager.RetrieveParameters(paramsPath);
             LoadParametersLabel.Content = shortName;
             // allow to unload parameters from UI
-        }
-
-        private void ToggleAutomationRelatedSettings(bool on)
-        {
-            LearningRate.IsEnabled = on;
-            Momentum.IsEnabled = on;
-            BadIterations.IsEnabled = on;
-            MaxIterations.IsEnabled = on;
-            // add more as more parameters are handled by automation
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -137,15 +127,19 @@ namespace Shell
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
+            StartButton.IsEnabled = false;
+
             worker.DoWork += worker_DoWork;
             worker.RunWorkerCompleted += worker_RunWorkerCompleted;
             worker.ProgressChanged += worker_ProgressChanged;
-            CreateResultsDirectory(DateTime.Now);
-            StartButton.IsEnabled = false;
+
             runCounter = 0;
             runsPerSettings = int.Parse(RunsTextBox.Text);
             string[] layersText = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
+
+            int pcaDimensions = 0;
+            int.TryParse(PCA.Text, out pcaDimensions); // TODO: test
 
             float trainSetPercentage = float.Parse(TrainSetPercentage.Text, CultureInfo.InvariantCulture);
             int outputCount = int.Parse(OutputCount.Text);
@@ -166,57 +160,43 @@ namespace Shell
 
             ConfirmReportingSettings();
 
-            foreach (LearningSettings learningSettings in settingsToRun)
+            EngineInitData eid = new EngineInitData();
+
+            eid.ErrorScale = ERROR_SCALE;
+            eid.DiscardWorstFactor = DISCARD_FACTOR;
+            eid.TrainSetPercentage = trainSetPercentage;
+
+            eid.CtsPrevValuesCount = 1; // always 1
+            eid.OutputCount = outputCount;
+            eid.InputCount = problemType == PartIIProblemType.CTS? 1 : csvLines[0].Count - outputCount;
+            if (pcaDimensions > 0)
             {
-                resultsBySettings[learningSettings] = new List<SingleRunReport>();
-                for (int i = 0; i < runsPerSettings; i++) // repeat several times to average out the results
-                {
-                    runCounter++;
-                    List<int> layersVal = new List<int>();
-                    foreach (var layer in layersText)
-                    {
-                        layersVal.Add(int.Parse(layer)); // re-initialize layer counts -> TODO: Later layer counts should be also configurable in params file / learning settings
-                    }
-
-                    if (problemType == PartIIProblemType.CTS)
-                    {
-                        InitCTS(layersVal, trainSetPercentage, ctsPrevValuesCount);
-                    }
-                    else
-                    {
-                        InitStock(layersVal, trainSetPercentage, outputCount);
-                    }
-
-                    layersVal.Add(outputCount);
-                    INetwork network = null;
-                    switch (networkType)
-                    {
-                        case NetworkType.MLP:
-                            network = new NeuralNetwork(learningSettings.Activation, bias, layersVal.ToArray());
-                            break;
-                        case NetworkType.Jordan:
-                            network = new RecursiveNetwork(RecursiveNetwork.Type.Jordan,
-                            learningSettings.Activation, bias, layersVal[0], layersVal[1], layersVal[2]);
-                            break;
-                        case NetworkType.Elman:
-                            network = new RecursiveNetwork(RecursiveNetwork.Type.Elman,
-                            learningSettings.Activation, bias, layersVal[0], layersVal[1], layersVal[2]);
-                            break;
-                    }
-
-                    NormalizeData(network, trainDataSet, testDataSet);
-                    CheckIfPerformPCA(network);
-                    learningStrategy = new VSetLearningStrategy(learningSettings);
-
-                    var learningResult = BackpropagationManager.Run(network, trainDataSet, testDataSet,
-                        learningStrategy, this);
-
-                    NormalizeDataBack(network, trainDataSet, testDataSet);
-                    resultsBySettings[learningSettings].Add(CreateSingleRunReport(layersVal, network, learningResult));
-                }
+                eid.InputCount = Math.Min(pcaDimensions, eid.InputCount);
             }
 
-            SaveResults();
+            eid.PcaDimensions = pcaDimensions;
+            eid.RunsPerSettings = runsPerSettings;
+
+            eid.UseBiases = bias;
+            eid.PlotAgainstInput = plotAgainstInput;
+
+            eid.NetworkType = networkType;
+            eid.ProblemType = problemType;
+
+            eid.ReportingOptions = reportingOptions;
+
+            eid.HiddenNeuronCounts = layersText.Select(s => int.Parse(s)).ToList(); // TODO: test
+            eid.CsvLines = csvLines;
+            eid.SettingsToRun = settingsToRun;
+
+            eid.ResultsDirectoryPath = resultsDirectoryPath;
+            eid.DataSetName = dataSetPath;
+            eid.ParametersFileName = parametersFileName;
+
+            Engine engine = new Engine(eid);
+            // TODO: in a worker
+            engine.Run();
+         
             StartButton.IsEnabled = true;
         }
 
@@ -235,14 +215,6 @@ namespace Shell
             throw new NotImplementedException();
         }
 
-        private SingleRunReport CreateSingleRunReport(List<int> layersVal, INetwork network, LearningResult learningResult)
-        {
-            SingleRunReport report = reportingOptions.ShouldSave ?
-                new SingleRunReport(network, layersVal, DateTime.Now, learningResult)
-                : new SingleRunReport(network, layersVal, DateTime.Now, learningResult, trainDataSet, testDataSet);
-            return report;
-        }
-
         private void ConfirmReportingSettings()
         {
             if (reportingOptions.ShouldDisplay && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
@@ -252,131 +224,6 @@ namespace Shell
                 if (result == MessageBoxResult.No)
                 {
                     reportingOptions.ShouldDisplay = false;
-                }
-            }
-        }
-
-        private void SaveResults()
-        {
-            List<AggregateResult> aggregates = new List<AggregateResult>();
-            int lsID = 0;
-            foreach(KeyValuePair<LearningSettings, List<SingleRunReport>> kvp in resultsBySettings)
-            {
-                lsID++;
-
-                kvp.Value.Sort((a, b) => Math.Sign(a.LearningResult.TestSetError - b.LearningResult.TestSetError)); // sort by errror asc
-                for(int i = 0; i < kvp.Value.Count; i++) 
-                {
-                    kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
-                    ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
-                }
-
-                aggregates.Add(new AggregateResult(kvp.Value, kvp.Key));
-            }
-
-            aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
-            SaveBatchReport(aggregates);
-        }
-
-        //private List<SingleRunReport> reports DiscardWorstRuns(List<SingleRunReport> reportsBestToWorst)
-        //{
-        //    HashSet<SingleRunReport> excludedReports;
-        //    List<SingleRunReport>
-        //}
-
-        private void ProcessSingleResultEntry(LearningSettings settings, SingleRunReport result)
-        {
-            PlotModel regressionPlot = Build1DRegressionModel(result.TrainSet, result.TestSet, plotAgainstInput);
-            ErrorPlotBuilder builder = new ErrorPlotBuilder(ERROR_SCALE);
-            PlotModel errorPlot = builder.SetUpModel(result.LearningResult.MSEHistory);
-            if (reportingOptions.ShouldSave)
-            {
-                SaveResultsToDisk(result.LayersVal, settings, result, regressionPlot, errorPlot, result.Network);
-            }
-
-            if (reportingOptions.ShouldDisplay)
-            {
-                DisplayResults(regressionPlot, errorPlot, result.LearningResult);
-            }
-        }
-
-        private void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
-        {
-            Window errorWindow = new NetworkErrorWindow(errorPlot);
-            errorWindow.Show();
-            Window regressionWindow = new RegressionWindow(regressionPlot, learningResult);
-            regressionWindow.Show();
-        }
-
-        private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings, 
-            SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
-        {
-            DateTime time = report.Time;
-
-
-            string prefix = report.Name;
-            string regressionFileName = prefix + "_regression.png";
-            string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
-            using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
-            {
-                PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
-            }
-
-            string errorFileName = prefix + "_error.png";
-            string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
-            using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
-            {
-                PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
-            }
-
-            string infoFileName = prefix + "_info.txt";
-            string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
-            // TODO: calculating test set error, calculating how often the direction of change is predicted correctly
-            // TODO: allow many executions for each configuration to calculate averages.
-            // TODO: save execution data as a "capsule" -> later we can find the best score in a batch, the best parameters, compute averages etc.
-
-            FileManager.SaveLearningInfo(infoSavePath,
-                GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
-        }
-
-        private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(settings.ToString());
-            sb.Append(now.ToLongDateString());
-            sb.Append("  ");
-            sb.AppendLine(now.ToLongTimeString());
-            sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
-            sb.AppendLine(System.IO.Path.GetFileName(dataSetPath));
-            sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
-            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
-            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
-            sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);
-            return sb.ToString();
-        }
-
-        private void SaveBatchReport(List<AggregateResult> sortedAverages)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Data set: {0}\r\nParams file: {1}\r\nDate {2}\r\nTime {3}\r\nRuns per settings: {4}", 
-                System.IO.Path.GetFileName(dataSetPath), parametersFileName,
-                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
-                runsPerSettings);
-            sb.AppendLine();
-
-            foreach(AggregateResult ar in sortedAverages)
-            {
-                sb.AppendLine(ar.ToString());
-                sb.AppendLine();
-            }
-
-            string reportName = "REPORT.txt";
-            string reportPath = System.IO.Path.Combine(resultsDirectoryPath, reportName);
-            using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
-            {
-                using(StreamWriter sw = new StreamWriter(fileStream))
-                {
-                    sw.Write(sb.ToString());
                 }
             }
         }
@@ -403,94 +250,6 @@ namespace Shell
             return lSettings;
         }
 
-        private void CheckIfPerformPCA(INetwork network)
-        {
-            int dimensionPca;
-
-            if (int.TryParse(this.PCA.Text, out dimensionPca))
-            {
-                LearningNN.PCA.Run(trainDataSet, dimensionPca, network.Activation.MinValue, network.Activation.MaxValue);
-                LearningNN.PCA.Run(testDataSet, dimensionPca, network.Activation.MinValue, network.Activation.MaxValue);
-            }
-        }
-
-        private static void NormalizeData(INetwork network, IDataSet trainData, IDataSet testData)
-        {
-            var extremums = DataExtremumsForNetwork.Merge(trainData.Extremums, testData.Extremums);
-
-            trainData.Normalize(network.Activation.MinValue, network.Activation.MaxValue, extremums);
-            testData.Normalize(network.Activation.MinValue, network.Activation.MaxValue, extremums);
-        }
-
-        private static void NormalizeDataBack(INetwork network, IDataSet trainData, IDataSet testData)
-        {
-            testData.NormalizeBack();
-            trainData.NormalizeBack();
-        }
-
-        private void InitCTS(List<int> layersVal, float trainSetPercentage, int historyLength)
-        {
-            int dimensionPca;
-            if (int.TryParse(this.PCA.Text, out dimensionPca))
-            {
-                layersVal.Insert(0, Math.Min(dimensionPca, historyLength));
-            }
-            else
-            {
-                layersVal.Insert(0, historyLength); // network needs as many inputs as many historical values we feed it.
-            }
-
-            int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
-            List<DenseVector> chaoticValues = csvLines; // no need for further parsing
-
-            List<DenseVector> trainValues = chaoticValues.ExtractList(0, trainSetEndIndex);
-            List<DenseVector> testValues = chaoticValues.ExtractList(trainSetEndIndex, chaoticValues.Count);
-
-            trainDataSet = new ChaoticDataSet(trainValues, historyLength, 0);
-            if (trainSetEndIndex >= chaoticValues.Count - 1)
-            {
-                testDataSet = trainDataSet.Clone();
-            }
-            else
-            {
-                testDataSet = new ChaoticDataSet(testValues, historyLength, trainSetEndIndex);
-            }
-        }
-
-        private void InitStock(List<int> layersVal, float trainSetPercentage, int outputCount)
-        {
-            int dimensionPca;
-            int displayInputCount = csvLines[0].Count - outputCount; // this way we can calculate number of display inputs
-
-            if (int.TryParse(this.PCA.Text, out dimensionPca))
-            {
-                layersVal.Insert(0, Math.Min(dimensionPca, displayInputCount));
-            }
-            else
-            {
-                layersVal.Insert(0, displayInputCount);
-            }
-            
-            
-            int trainSetEndIndex = (int)(trainSetPercentage * csvLines.Count);
-
-            List<DenseVector> allInputs = csvLines.Select(v => v.CreateSubVector(0, displayInputCount)).ToList();
-            List<DenseVector> allOutputs = csvLines.Select(v => v.CreateSubVector(displayInputCount, outputCount)).ToList();
-
-            trainDataSet = new StockDataSet(allInputs.ExtractList(0, trainSetEndIndex), 
-                allOutputs.ExtractList(0, trainSetEndIndex), 0);
-
-            if (trainSetEndIndex >= allInputs.Count - 1)
-            {
-                testDataSet = trainDataSet.Clone();
-            }
-            else
-            {
-                testDataSet = new StockDataSet(allInputs.ExtractList(trainSetEndIndex, csvLines.Count),
-                    allOutputs.ExtractList(trainSetEndIndex, csvLines.Count), trainSetEndIndex);
-            }
-        }
-
         private void AppendCSVile(string path, CasesData data)
         {
             var output = new List<DenseVector>();
@@ -506,43 +265,6 @@ namespace Shell
             FileManager.AppendDataToCSV(path, output);
         }
 
-        private void CreateResultsDirectory(DateTime time)
-        {
-            string dirName = time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
-            resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
-            Directory.CreateDirectory(resultsDirectoryPath);
-        }
-
-        private PlotModel Build1DRegressionModel(IDataSet trainingSet, IDataSet testSet, bool plotAgainstInput) // if plotAgainstInput is true, use input as X axis, not time
-        {
-            List<RegressionPoint> trainPoints = new List<RegressionPoint>();
-            List<RegressionPoint> testIdealPoints = new List<RegressionPoint>();
-            List<RegressionPoint> networkAnswers = new List<RegressionPoint>();
-            Func<Pattern, double> patternToDouble;
-            if(plotAgainstInput)
-            {
-                patternToDouble = p => p.Input[0];
-            }
-            else
-            {
-               patternToDouble = p => p.TimeIndex;
-            }
-
-            foreach(Pattern p in trainingSet.EnumeratePatterns())
-            {
-                trainPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
-            }
-
-            foreach(Pattern p in testSet.EnumeratePatterns())
-            {
-                testIdealPoints.Add(new RegressionPoint(patternToDouble(p), p.IdealOutput.At(0)));
-                networkAnswers.Add(new RegressionPoint(patternToDouble(p), p.NetworkAnswer.At(0)));
-            }
-
-            RegressionPlotBuilder builder = new RegressionPlotBuilder();
-            PlotModel regressionPlotModel = builder.SetUpModel(trainPoints, testIdealPoints, networkAnswers);
-            return regressionPlotModel;
-        }
 
         public void SetStatusText(string text)
         {           
