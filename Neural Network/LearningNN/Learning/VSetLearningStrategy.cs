@@ -90,7 +90,7 @@ namespace LearningNN.Learning
         protected override void UpdateStatus()
         {
             statusHolder.UpdateStatus(string.Format("iter {0} / {1}, VSet err: {2}",
-                iteration, IterLimit, errorHistory[errorHistory.Count - 1]));
+                iteration, IterLimit, errorHistory[errorHistory.Count - 1].ToString("F8")));
         }
 
         private double CalculateMSEValidation()
