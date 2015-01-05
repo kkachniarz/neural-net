@@ -12,6 +12,7 @@ namespace LearningNN.Learning
 {
     public class VSetLearningStrategy : LearningStrategy
     {
+        private const double UNTOUCHABLE_ERROR = 5E-4;
         public int IterLimit { get; set; }
         public int MaxBadIterations { get; set; }
         public int MinIterations { get; set; }
@@ -63,7 +64,7 @@ namespace LearningNN.Learning
                 badIterations = 0;
             }
 
-            if (ShouldStop())
+            if (ShouldStop() || IsTrainingStuck())
             {
                 finished = true;
                 // restore the best weights
@@ -80,6 +81,48 @@ namespace LearningNN.Learning
         {
             return (badIterations > MaxBadIterations && iteration >= MinIterations) 
                 || iteration >= IterLimit;
+        }
+
+        /// <summary>
+        /// Tries to detect a network that got stuck right from the beginning.
+        /// We don't want to lose time for training this network - according to our experience, it'll never learn.
+        /// </summary>
+        /// <returns></returns>
+        private bool IsTrainingStuck()
+        {
+            if(iteration == (int)(0.1 * IterLimit))
+            {
+                return CheckTrainingStuck(0, 0.01);
+            }
+            else if(iteration == (int)(0.2 * IterLimit))
+            {
+                return CheckTrainingStuck(0, 0.02);
+            }
+
+            return false;
+        }
+
+        private bool CheckTrainingStuck(int fromIter, double minImprovementFactor)
+        {
+            if (errorHistory.Count <= fromIter || errorHistory[fromIter] < UNTOUCHABLE_ERROR)
+            {
+                return false;
+            }
+
+            double fromErr = errorHistory[fromIter];
+            double nowErr = errorHistory[errorHistory.Count - 1];
+            if (nowErr < UNTOUCHABLE_ERROR) // if the error is very good, just let it continue.
+            {
+                return false;
+            }
+
+            double ImprovementFrom1st = (nowErr - fromErr) / fromErr;
+            if(ImprovementFrom1st < minImprovementFactor)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private void DoTrainSetEpoch()
