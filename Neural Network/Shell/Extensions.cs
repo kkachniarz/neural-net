@@ -6,6 +6,7 @@ using System.Xml;
 using Microsoft.Win32;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.LinearAlgebra;
+using System.Globalization;
 
 namespace Shell
 {

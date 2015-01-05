@@ -2,6 +2,7 @@
 using SharpNN.ActivationFunctions;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -107,22 +108,22 @@ Validation Set Size: {7}",
 
         private void ParseLearningRate(string str)
         {
-            LearningRate = double.Parse(str);
+            LearningRate = double.Parse(str, CultureInfo.InvariantCulture);
         }
 
         private void ParseMomentum(string str)
         {
-             Momentum = double.Parse(str);
+            Momentum = double.Parse(str, CultureInfo.InvariantCulture);
         }
 
         private void ParseMaxIterations(string str)
         {
-            MaxIterations = int.Parse(str);
+            MaxIterations = int.Parse(str, CultureInfo.InvariantCulture);
         }
 
         private void ParseBadIterations(string str)
         {
-             BadIterations = int.Parse(str);
+            BadIterations = int.Parse(str, CultureInfo.InvariantCulture);
         }
 
         private void ParseHiddenNeuronCounts(string str)

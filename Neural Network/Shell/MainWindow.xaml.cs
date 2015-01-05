@@ -363,10 +363,10 @@ Total time taken: {10}s.",
         private LearningSettings GetLearningSettingsFromUI()
         {
             LearningSettings lSettings = new LearningSettings();
-            lSettings.MaxIterations = int.Parse(MaxIterations.Text);
-            lSettings.BadIterations = BadIterations.Text == "" ? lSettings.MaxIterations : int.Parse(BadIterations.Text);
-            lSettings.LearningRate = double.Parse(LearningRate.Text);
-            lSettings.Momentum = double.Parse(Momentum.Text);
+            lSettings.MaxIterations = int.Parse(MaxIterations.Text, CultureInfo.InvariantCulture);
+            lSettings.BadIterations = BadIterations.Text == "" ? lSettings.MaxIterations : int.Parse(BadIterations.Text, CultureInfo.InvariantCulture);
+            lSettings.LearningRate = double.Parse(LearningRate.Text, CultureInfo.InvariantCulture);
+            lSettings.Momentum = double.Parse(Momentum.Text, CultureInfo.InvariantCulture);
             lSettings.ValidationSetSize = 0.2f;
             lSettings.Activation = ((ActivationType)ActivationCombobox.SelectedItem == ActivationType.Bipolar) ?
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
