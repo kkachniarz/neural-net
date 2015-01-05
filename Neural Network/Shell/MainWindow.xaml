@@ -4,8 +4,7 @@
         Title="Neural Network" 
         ResizeMode="CanMinimize" 
         WindowStartupLocation="CenterScreen" 
-        SizeToContent="WidthAndHeight"
-        Closing="Window_Closing">
+        SizeToContent="WidthAndHeight">
 
     <Window.Resources>
         <ResourceDictionary>

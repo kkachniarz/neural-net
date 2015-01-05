@@ -332,7 +332,7 @@ Network type: {7}, inputs: {8}, outputs: {9}",
             lSettings.ValidationSetSize = 0.2f;
             lSettings.Activation = ((ActivationType)ActivationCombobox.SelectedItem == ActivationType.Bipolar) ?
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
-            lSettings.SetParamByTitle("HID", LayersTextBox.Text);
+            lSettings.SetParamByTitle("HL", LayersTextBox.Text);
 
             return lSettings;
         }

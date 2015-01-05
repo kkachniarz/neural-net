@@ -30,7 +30,7 @@ namespace LearningNN.Learning
             "MAXIT",
             "BADIT", 
             "FUNC",
-            "HID"
+            "HL"
         };
 
         public static List<string> RequiredTitles
@@ -57,7 +57,7 @@ namespace LearningNN.Learning
                 {"MAXIT", ParseMaxIterations},
                 {"BADIT", ParseBadIterations},
                 {"FUNC", ParseActivationFunc},
-                {"HID", ParseHiddenNeuronCounts},
+                {"HL", ParseHiddenNeuronCounts},
             };
         }
 
@@ -81,6 +81,8 @@ namespace LearningNN.Learning
 
         public void SetParamByTitle(string title, string value)
         {
+            title = title.ToUpper();
+            value = value.ToUpper();
             if(!requiredParamParsers.ContainsKey(title))
             {
                 throw new ArgumentException(string.Format("Parameter name not recognized: {0}", title));
