@@ -13,6 +13,10 @@ namespace LearningNN.Learning
     {
         public double LearningRate { get; set; }
         public double Momentum { get; set; }
+        /// <summary>
+        /// Total time taken by the last training.
+        /// </summary>
+        public TimeSpan TimeTaken { get; private set; }
 
         protected bool finished;
         protected INetwork network;
@@ -20,23 +24,24 @@ namespace LearningNN.Learning
         protected IStatusReporter statusHolder;
         protected List<double> errorHistory;
 
-        private DateTime lastStatusUpdate;
+        private DateTime lastStatusUpdate = DateTime.MinValue;
         private TimeSpan minUpdateInterval = new TimeSpan(0, 0, 1);
 
         public LearningStrategy(double learningRate, double momentum)
         {
             this.LearningRate = learningRate;
             this.Momentum = momentum;
+            this.TimeTaken = TimeSpan.Zero;
         }
 
         public virtual List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
         {
-            lastStatusUpdate = DateTime.Now;
             this.network = network;
             this.dataSet = data;
             this.statusHolder = statusHolder;
 
             errorHistory = new List<double>();
+            DateTime startTime = DateTime.Now;
             while(!finished)
             {
                 errorHistory.Add(RunEpoch());
@@ -47,6 +52,7 @@ namespace LearningNN.Learning
                 }
             }
 
+            TimeTaken = DateTime.Now - startTime;
             return errorHistory;
         }
 

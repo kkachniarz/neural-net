@@ -30,6 +30,7 @@ namespace LearningNN
             learningResult.MSEHistory = learningStrategy.Train(network, trainData, statusHolder);
             learningResult.TestSetError = AnswerTestSet(network, testData);
             learningResult.DirectionGuessRate = CalculateDirectionGuessed(testData);
+            learningResult.TimeTaken = learningStrategy.TimeTaken;
             return learningResult;
         }
 

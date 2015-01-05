@@ -416,12 +416,9 @@ Network type: {7}, inputs: {8}, outputs: {9}",
             sb.Append(now.ToLongDateString());
             sb.Append("  ");
             sb.AppendLine(now.ToLongTimeString());
-            sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
             sb.AppendLine(System.IO.Path.GetFileName(eid.DataSetName));
             sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
-            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1].ToString("E2"));
-            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError.ToString("E2"));
-            sb.AppendFormat("Direction misguess: {0}\r\n", result.DirectionMisguessRate.ToString("E2"));
+            sb.AppendLine(result.ToString());
             return sb.ToString();
         }
 
@@ -442,7 +439,7 @@ Network type: {7}, inputs: {8}, outputs: {9}",
 
         private void CreateResultDirectories(DateTime time)
         {
-            string dirName = settingsToRun.Count + "x" + runsPerSettings.ToString() + "_runs_" + 
+            string dirName = settingsToRun.Count + "x" + runsPerSettings.ToString() + "_" + 
                 time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
             resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
             Directory.CreateDirectory(resultsDirectoryPath);
