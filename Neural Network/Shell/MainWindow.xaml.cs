@@ -372,14 +372,14 @@ Network type: {7}, inputs: {8}, outputs: {9}",
             if (eid.ReportingOptions.ShouldSavePlots)
             {
                 string regressionFileName = prefix + "_regression.png";
-                string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
+                string regressionSavePath = System.IO.Path.Combine(innerResultsPath, regressionFileName);
                 using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
                 {
                     PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
                 }
 
                 string errorFileName = prefix + "_error.png";
-                string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
+                string errorSavePath = System.IO.Path.Combine(innerResultsPath, errorFileName);
                 using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
                 {
                     PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
@@ -389,7 +389,7 @@ Network type: {7}, inputs: {8}, outputs: {9}",
             if (eid.ReportingOptions.ShouldSaveRunInfos)
             {
                 string infoFileName = prefix + "_info.txt";
-                string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
+                string infoSavePath = System.IO.Path.Combine(innerResultsPath, infoFileName);
 
                 FileManager.SaveTextFile(infoSavePath,
                     GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
@@ -414,9 +414,9 @@ Network type: {7}, inputs: {8}, outputs: {9}",
             sb.AppendFormat("Iterations executed: {0}\r\n", result.IterationsExecuted);
             sb.AppendLine(System.IO.Path.GetFileName(eid.DataSetName));
             sb.AppendFormat("Layer counts: {0}\r\n", string.Join("-", neuronCounts));
-            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1]);
-            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError);
-            sb.AppendFormat("Direction guessed on test set: {0}\r\n", result.TestSetDirectionGuessed);
+            sb.AppendFormat("Error on validation set: {0}\r\n", result.MSEHistory[result.MSEHistory.Count - 1].ToString("E2"));
+            sb.AppendFormat("Error on test set: {0}\r\n", result.TestSetError.ToString("E2"));
+            sb.AppendFormat("Direction misguess: {0}\r\n", result.DirectionMisguessRate.ToString("E2"));
             return sb.ToString();
         }
 

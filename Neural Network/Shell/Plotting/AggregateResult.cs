@@ -18,7 +18,7 @@ namespace Shell.Plotting
     {
         public int RunCount;
         public Vector<double> Errors;
-        public Vector<double> Directions;
+        public Vector<double> DirectionMisguessRates;
         public Vector<double> Iterations;
         public List<SingleRunReport> Reports;
         public double AverageError;
@@ -29,13 +29,13 @@ namespace Shell.Plotting
         public AggregateResult(List<SingleRunReport> reports, LearningSettings settings)
         {
             Errors = new DenseVector(reports.Count);
-            Directions = new DenseVector(reports.Count);
+            DirectionMisguessRates = new DenseVector(reports.Count);
             Iterations = new DenseVector(reports.Count);
 
             for (int i = 0; i < reports.Count; i++)
             {
                 Errors[i] = reports[i].LearningResult.TestSetError;
-                Directions[i] = reports[i].LearningResult.TestSetDirectionGuessed;
+                DirectionMisguessRates[i] = reports[i].LearningResult.DirectionMisguessRate;
                 Iterations[i] = reports[i].LearningResult.IterationsExecuted;
             }
 
@@ -49,10 +49,11 @@ namespace Shell.Plotting
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Test Set Error: M = {0}   SD = {1}\r\n", Errors.Average().ToString("F8"), 
-                Errors.StandardDeviation().ToString("F6"));
-            sb.AppendFormat("Test Set Direction guessed: M = {0}   SD = {1}\r\n", Directions.Average().ToString("F8"), 
-                Directions.StandardDeviation().ToString("F6"));
+            sb.AppendFormat("Test Set Error: M = {0}   SD = {1}\r\n", Errors.Average().ToString("E2"), 
+                Errors.StandardDeviation().ToString("E2"));
+            sb.AppendFormat("Test Set direction misguess rate: M = {0}   SD = {1}\r\n", 
+                DirectionMisguessRates.Average().ToString("E2"), 
+                DirectionMisguessRates.StandardDeviation().ToString("E2"));
             sb.AppendFormat("Iterations: M = {0}  SD = {1}\r\n", Iterations.Average().ToString("F1"),
                 Iterations.StandardDeviation().ToString("F1"));
             sb.AppendLine();

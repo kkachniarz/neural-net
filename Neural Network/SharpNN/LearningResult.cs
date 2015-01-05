@@ -11,7 +11,11 @@ namespace SharpNN
     {
         public List<double> MSEHistory { get; set; }
         public double TestSetError { get; set; }
-        public double TestSetDirectionGuessed { get; set; }
+        public double DirectionGuessRate { get; set; }
+        public double DirectionMisguessRate
+        {
+            get { return 1.0 - DirectionGuessRate; }
+        }
 
         public int IterationsExecuted
         {
@@ -33,7 +37,7 @@ namespace SharpNN
         {
             MSEHistory = new List<double>();
             TestSetError = 0;
-            TestSetDirectionGuessed = 0;
+            DirectionGuessRate = 0;
         }
     }
 }

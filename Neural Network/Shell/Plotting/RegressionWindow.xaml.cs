@@ -28,8 +28,8 @@ namespace Shell.Plotting
         {
             InitializeComponent();
             RegressionPlot.Model = plotModel;
-            this.Title = string.Format("Test Set Dir: {0} Test Set Err: {1}", 
-                learningResult.TestSetDirectionGuessed.ToString("F5"), learningResult.TestSetError.ToString("F5"));
+            this.Title = string.Format("TS Dir misguess: {0} TS Err: {1}", 
+                learningResult.DirectionMisguessRate.ToString("E2"), learningResult.TestSetError.ToString("E2"));
         }
     }
 }

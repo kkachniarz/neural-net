@@ -29,7 +29,7 @@ namespace LearningNN
             LearningResult learningResult = new LearningResult();
             learningResult.MSEHistory = learningStrategy.Train(network, trainData, statusHolder);
             learningResult.TestSetError = AnswerTestSet(network, testData);
-            learningResult.TestSetDirectionGuessed = CalculateDirectionGuessed(testData);
+            learningResult.DirectionGuessRate = CalculateDirectionGuessed(testData);
             return learningResult;
         }
 
