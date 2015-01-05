@@ -60,9 +60,10 @@ namespace Shell
         BackgroundWorker worker;
 
         private string dataSetPath;
-        private string parametersFileName = "(not used)";
+        private string parametersFileName = "";
         private string resultsDirectoryPath;
         private string innerResultsPath;
+        private string paramsFileText;
 
         public MainWindow()
         {
@@ -83,13 +84,15 @@ namespace Shell
             csvDlg.DefaultExt = ".txt";
             csvDlg.Filter = "TXT documents (.txt)|*.txt";
             csvDlg.Title = "Select a .txt file containing network parameters";
-            string paramsPath = ReadFile(out shortName, csvDlg);
+            
+            string paramsFilePath = ReadFile(out shortName, csvDlg);
             parametersFileName = shortName;
 
-            if (paramsPath == null)
+            if (paramsFilePath == null)
                 return;
 
-            settingsToRun = FileManager.RetrieveParameters(paramsPath);
+            settingsToRun = FileManager.RetrieveParameters(paramsFilePath);
+            paramsFileText = FileManager.ReadTextFile(paramsFilePath);
             LoadParametersLabel.Content = string.Format("{0} ({1})", shortName, settingsToRun.Count);
             ToggleAutomationRelatedSettings(false);
         }
@@ -98,6 +101,7 @@ namespace Shell
         {
             settingsToRun = new List<LearningSettings>(); // to create a new reference (safe for background worker)
             parametersFileName = "(not used)";
+            paramsFileText = "";
             ToggleAutomationRelatedSettings(true);
             LoadParametersLabel.Content = "...";
         }
@@ -270,11 +274,12 @@ namespace Shell
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat(@"Data set: {0}
-Params file: {1}
-Date {2} Time {3}
+Params file: 
+{1}
+Date {2}, {3}
 Runs per settings: {4}, discarding {5}% = {6} worst runs per each settings
 Network type: {7}, inputs: {8}, outputs: {9}",
-                System.IO.Path.GetFileName(eid.DataSetName), eid.ParametersFileName,
+                System.IO.Path.GetFileName(eid.DataSetName), paramsFileText,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
                 eid.RunsPerSettings, (eid.DiscardWorstFactor * 100).ToString("F1"), engineResult.WorstDiscardedCount,
                 eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount);
@@ -437,7 +442,8 @@ Network type: {7}, inputs: {8}, outputs: {9}",
 
         private void CreateResultDirectories(DateTime time)
         {
-            string dirName = runsPerSettings.ToString() + "_runs_" + time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
+            string dirName = settingsToRun.Count + "x" + runsPerSettings.ToString() + "_runs_" + 
+                time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
             resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
             Directory.CreateDirectory(resultsDirectoryPath);
             innerResultsPath = System.IO.Path.Combine(resultsDirectoryPath, "run_data");

@@ -11,9 +11,6 @@ namespace LearningNN.Learning
 {
     public abstract class LearningStrategy : ILearningStrategy
     {
-        protected const int UPDATE_INTERVAL = 20;
-        int updateCounter;
-
         public double LearningRate { get; set; }
         public double Momentum { get; set; }
 
@@ -23,6 +20,9 @@ namespace LearningNN.Learning
         protected IStatusReporter statusHolder;
         protected List<double> errorHistory;
 
+        private DateTime lastStatusUpdate;
+        private TimeSpan minUpdateInterval = new TimeSpan(0, 0, 1);
+
         public LearningStrategy(double learningRate, double momentum)
         {
             this.LearningRate = learningRate;
@@ -31,7 +31,7 @@ namespace LearningNN.Learning
 
         public virtual List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
         {
-            updateCounter = 0;
+            lastStatusUpdate = DateTime.Now;
             this.network = network;
             this.dataSet = data;
             this.statusHolder = statusHolder;
@@ -40,13 +40,11 @@ namespace LearningNN.Learning
             while(!finished)
             {
                 errorHistory.Add(RunEpoch());
-                if (updateCounter % UPDATE_INTERVAL == UPDATE_INTERVAL - 1)
+                if (DateTime.Now - lastStatusUpdate > minUpdateInterval)
                 {
                     UpdateStatus();
-                    updateCounter = -1;
+                    lastStatusUpdate = DateTime.Now;
                 }
-
-                updateCounter++;
             }
 
             return errorHistory;

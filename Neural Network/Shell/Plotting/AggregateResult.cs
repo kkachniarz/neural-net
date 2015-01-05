@@ -25,6 +25,7 @@ namespace Shell.Plotting
 
         public LearningSettings SettingsUsed;
         public INetwork Network;
+        public int BestErrorIndex { get; private set; }
 
         public AggregateResult(List<SingleRunReport> reports, LearningSettings settings)
         {
@@ -44,6 +45,7 @@ namespace Shell.Plotting
             Network = reports[0].Network;
             AverageError = Errors.Average();
             Reports = reports.ToList(); // create copies of references
+            BestErrorIndex = Errors.MinimumIndex();
         }
 
         public override string ToString()
@@ -58,9 +60,10 @@ namespace Shell.Plotting
                 Iterations.StandardDeviation().ToString("F1"));
             sb.AppendLine();
 
-            //sb.AppendFormat("Best error: {0}\r\n", Errors.Min().ToString());
-            //sb.AppendFormat("Best direction guess factor: {0}\r\n", Directions.Max().ToString()); // the two best scores are not necessarily from the same run!
-            //sb.AppendLine();
+            // the two best scores are not necessarily from the same run!
+            sb.AppendFormat("Best error: {0}\r\n", Errors.Min().ToString("E2"));
+            sb.AppendFormat("Best direction misguess factor: {0}\r\n", DirectionMisguessRates.Min().ToString("E2"));
+            sb.AppendLine();
 
             //sb.AppendFormat("Worst error: {0}\r\n", Errors.Max().ToString());
             //sb.AppendFormat("Worst direction guess factor: {0}\r\n", Directions.Min().ToString());

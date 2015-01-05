@@ -100,6 +100,7 @@ namespace Shell
                 splitLines.Add(values);
             }
 
+            reader.Close();
             return SettingsMixer.BuildSettings(splitLines);
         }
 
@@ -112,6 +113,20 @@ namespace Shell
                     sw.Write(text);
                 }
             }
+        }
+
+        public static string ReadTextFile(string path)
+        {
+            string ret;
+            using (FileStream fs = new FileStream(path, FileMode.Open))
+            {
+                using (StreamReader st = new StreamReader(fs))
+                {
+                    ret = st.ReadToEnd();
+                }
+            }
+
+            return ret;
         }
     }
 }
