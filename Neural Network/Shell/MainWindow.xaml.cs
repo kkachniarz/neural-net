@@ -59,10 +59,10 @@ namespace Shell
         EngineInitData eid;
         BackgroundWorker worker;
 
-        private string dataSetPath;
-        private string parametersFileName = "";
+        private string dataSetPath;        
         private string resultsDirectoryPath;
         private string innerResultsPath;
+        private string paramsFileName = null;
         private string paramsFileText;
 
         public MainWindow()
@@ -86,7 +86,7 @@ namespace Shell
             csvDlg.Title = "Select a .txt file containing network parameters";
             
             string paramsFilePath = ReadFile(out shortName, csvDlg);
-            parametersFileName = shortName;
+            paramsFileName = shortName;
 
             if (paramsFilePath == null)
                 return;
@@ -97,10 +97,15 @@ namespace Shell
             ToggleAutomationRelatedSettings(false);
         }
 
-        private void UnloadParameters(object sender, RoutedEventArgs e)
+        private void HandleUnloadParametersClick(object sender, RoutedEventArgs e)
+        {
+            UnloadParameters();
+        }
+
+        private void UnloadParameters()
         {
             settingsToRun = new List<LearningSettings>(); // to create a new reference (safe for background worker)
-            parametersFileName = "(not used)";
+            paramsFileName = null;
             paramsFileText = "";
             ToggleAutomationRelatedSettings(true);
             LoadParametersLabel.Content = "...";
@@ -114,7 +119,6 @@ namespace Shell
             BadIterations.IsEnabled = on;
             ActivationCombobox.IsEnabled = on;
             LayersTextBox.IsEnabled = on;
-            LoadDataBtn.IsEnabled = on;
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -211,7 +215,7 @@ namespace Shell
             eid.SettingsToRun = settingsToRun;
 
             eid.DataSetName = dataSetPath;
-            eid.ParametersFileName = parametersFileName;
+            eid.ParametersFileName = paramsFileName;
 
             ConfirmReportingSettings();
             CreateResultDirectories(DateTime.Now);
@@ -249,7 +253,11 @@ namespace Shell
         private void CleanUpAfterWorkerCompleted()
         {
             ToggleSensitiveGUIParts(true);
-            settingsToRun.Clear(); // clear the list itself
+            if(paramsFileName == null) // if params from file weren't used
+            {
+                settingsToRun.Clear();
+            }
+
             eid = null;
         }
 
@@ -299,11 +307,13 @@ Params file:
 {1}
 Date {2}, {3}
 Runs per settings: {4}, discarding {5} = {6} worst runs per each settings
-Network type: {7}, inputs: {8}, outputs: {9}",
+Network type: {7}, inputs: {8}, outputs: {9}
+Total time taken: {10}s.",
                 System.IO.Path.GetFileName(eid.DataSetName), paramsFileText,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
                 eid.RunsPerSettings, eid.DiscardWorstFactor.ToString("P1"), engineResult.WorstDiscardedCount,
-                eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount);
+                eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount,
+                sortedAverages.Sum(a => a.AverageSecondsTaken * a.RunCount).ToString("F1"));
             sb.AppendLine();
             sb.AppendLine("-------------------------------------------------------------------");
             sb.AppendLine();
