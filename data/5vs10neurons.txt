@@ -1,0 +1,6 @@
+LR: 0.7
+M: 0.3
+MAXIT: 1000
+BADIT: 50
+FUNC: U
+HL: 5, 10
