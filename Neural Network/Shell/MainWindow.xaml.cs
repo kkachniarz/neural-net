@@ -90,7 +90,7 @@ namespace Shell
                 return;
 
             settingsToRun = FileManager.RetrieveParameters(paramsPath);
-            LoadParametersLabel.Content = shortName;
+            LoadParametersLabel.Content = string.Format("{0} ({1})", shortName, settingsToRun.Count);
             ToggleAutomationRelatedSettings(false);
         }
 
