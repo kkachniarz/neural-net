@@ -1,6 +1,6 @@
 LR: 0.1, 0.25, 0.5, 0.75, 1.0  // 5 learning rates x 3 momentums x 4 HLs = 60 settings to test
 M: 0.0, 0.3, 0.6 // comments are allowed
-MAXIT: 1500
+MAXIT: 10000
 BADIT: 20
 FUNC: B // bipolar seems to work better than unipolar for stock
 HL: 5, 10, 50, 1000
