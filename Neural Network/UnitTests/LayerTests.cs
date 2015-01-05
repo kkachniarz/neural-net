@@ -20,7 +20,7 @@ namespace UnitTests
             InputLayer il = new InputLayer(3);
             WeightedLayer wl = new WeightedLayer(5, new UnipolarSigmoidActivation(), false);
             il.ConnectTo(wl);
-            wl.RandomizeWeights(0.0001);
+            wl.RandomizeWeights();
             Assert.IsTrue(wl.IncomingWeights.Enumerate().All(x => x != 0.0));
         }
 
@@ -30,7 +30,7 @@ namespace UnitTests
             InputLayer il = new InputLayer(3);
             WeightedLayer wl = new WeightedLayer(5, new UnipolarSigmoidActivation(), true);
             il.ConnectTo(wl);
-            wl.RandomizeWeights(0.05);
+            wl.RandomizeWeights();
             Assert.IsTrue(wl.BiasWeights.Enumerate().All(x => x != 0.0));
         }
 

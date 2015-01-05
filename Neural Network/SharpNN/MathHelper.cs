@@ -9,11 +9,12 @@ namespace SharpNN
     public static class MathHelper
     {
         public static Random Rand = new Random();
-        private const double EPSILON = 0.01;
-        public static double RandomExceptZero(double maxAbsValue, double epsilon = EPSILON)
+        private const double EPSILON_FACTOR = 0.2;
+        public static double RandomExceptZero(double maxAbsValue, double epsilonFactor = EPSILON_FACTOR)
         {
-            AssertCanRandomize(maxAbsValue, epsilon);
-            double number = (Rand.NextDouble() * (maxAbsValue - epsilon) + epsilon);
+            double eps = epsilonFactor * maxAbsValue;
+            AssertCanRandomize(maxAbsValue, eps);
+            double number = (Math.Abs(Rand.NextDouble()) * (maxAbsValue - eps) + eps);
             if(Rand.NextDouble() < 0.5)
             {
                 number = -number;
@@ -29,7 +30,7 @@ namespace SharpNN
                 throw new ArgumentException("Maximum absolute value must be greater than 0");
             }
 
-            if(maxAbsValue <= 0.8 * epsilon)
+            if(maxAbsValue * 0.8 <=  epsilon)
             {
                 throw new ArgumentException("Maximum absolute value must be greater than 0.8 * epsilon value");
             }

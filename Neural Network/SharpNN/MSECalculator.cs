@@ -22,8 +22,8 @@ namespace SharpNN
 
         public static double CalculateEpochMSE(double rawMSESum, double dataSetSize, IActivation activation)
         {
-            return Math.Sqrt(rawMSESum / (((activation.MaxValue - activation.MinValue) * (activation.MaxValue - activation.MinValue))
-                * dataSetSize));
+            double activationRange = ((activation.MaxValue - activation.MinValue) * (activation.MaxValue - activation.MinValue));
+            return rawMSESum / (activationRange * dataSetSize);
         }
     }
 }
