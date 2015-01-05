@@ -59,8 +59,8 @@ namespace RecursiveNN
 
         public void Initialize(CreationModes mode)
         {
-            hiddenLayer.RandomizeWeights(DEFAULT_RND_RANGE);
-            outputLayer.RandomizeWeights(DEFAULT_RND_RANGE);
+            hiddenLayer.RandomizeWeights();
+            outputLayer.RandomizeWeights();
         }
 
         public void CalculateAndPropagateError(Vector<double> modelAnswer)

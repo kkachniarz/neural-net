@@ -181,11 +181,11 @@ namespace SharpNN
             return layers[index];
         }
 
-        public void RandomizeWeights(double maxAbsValue = DEFAULT_RND_RANGE)
+        public void RandomizeWeights()
         {
             foreach (WeightedLayer weightedLayer in layers.OfType<WeightedLayer>())
             {
-                weightedLayer.RandomizeWeights(maxAbsValue);
+                weightedLayer.RandomizeWeights();
             }
         }
 

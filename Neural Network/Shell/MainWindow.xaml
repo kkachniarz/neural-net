@@ -120,6 +120,8 @@
                 Width="100" FontWeight="Bold" IsChecked="False"/>
             <CheckBox Name="SavePlotsCheckbox" Content="Save plots"
                 Width="100" FontWeight="Bold" IsChecked="False"/>
+            <CheckBox Name="SaveRunInfosCheckbox" Content="Save run infos"
+                Width="100" FontWeight="Bold" IsChecked="True"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="15" Grid.Column="1">

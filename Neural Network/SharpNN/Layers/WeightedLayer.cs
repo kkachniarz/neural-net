@@ -63,9 +63,10 @@ namespace SharpNN.Layers
             return LastOutput.Clone();
         }
 
-        public void RandomizeWeights(double maxAbsValue)
+        public void RandomizeWeights()
         {
             AssertIncomingWeightsExist();
+            double maxAbsValue = 1.0 / Math.Sqrt(IncomingWeights.ColumnCount); // based on http://stats.stackexchange.com/questions/47590/what-are-good-initial-weights-in-a-neural-network
             RandomizeConnectionWeights(maxAbsValue);
             if (HasBias)
             {

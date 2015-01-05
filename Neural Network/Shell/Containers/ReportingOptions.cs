@@ -8,7 +8,8 @@ namespace Shell.Containers
 {
     public class ReportingOptions
     {
-        public bool ShouldDisplay { get; set; }
-        public bool ShouldSave { get; set; }
+        public bool ShouldDisplayPlots { get; set; }
+        public bool ShouldSavePlots { get; set; }
+        public bool ShouldSaveRunInfos { get; set; }
     }
 }

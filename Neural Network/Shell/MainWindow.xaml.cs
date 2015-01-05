@@ -62,6 +62,7 @@ namespace Shell
         private string dataSetPath;
         private string parametersFileName = "(not used)";
         private string resultsDirectoryPath;
+        private string innerResultsPath;
 
         public MainWindow()
         {
@@ -208,7 +209,7 @@ namespace Shell
             eid.ParametersFileName = parametersFileName;
 
             ConfirmReportingSettings();
-            CreateResultsDirectory(DateTime.Now);
+            CreateResultDirectories(DateTime.Now);
 
             worker = new BackgroundWorker();
             worker.DoWork += worker_DoWork;
@@ -303,13 +304,13 @@ Network type: {7}, inputs: {8}, outputs: {9}",
         /// </summary>
         private void ConfirmReportingSettings()
         {
-            if (eid.ReportingOptions.ShouldDisplay && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
+            if (eid.ReportingOptions.ShouldDisplayPlots && settingsToRun.Count * runsPerSettings >= DISPLAY_LIMIT)
             {
                 MessageBoxResult result = MessageBox.Show("Display results for " + (settingsToRun.Count * runsPerSettings).ToString() + "?"
                     , "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.No)
                 {
-                    eid.ReportingOptions.ShouldDisplay = false;
+                    eid.ReportingOptions.ShouldDisplayPlots = false;
                 }
             }
         }
@@ -317,8 +318,9 @@ Network type: {7}, inputs: {8}, outputs: {9}",
         private ReportingOptions GetReportingOptions()
         {
             ReportingOptions options = new ReportingOptions();
-            options.ShouldDisplay = ShowPlotsCheckbox.IsChecked.Value;
-            options.ShouldSave = SavePlotsCheckbox.IsChecked.Value;
+            options.ShouldDisplayPlots = ShowPlotsCheckbox.IsChecked.Value;
+            options.ShouldSavePlots = SavePlotsCheckbox.IsChecked.Value;
+            options.ShouldSaveRunInfos = SaveRunInfosCheckbox.IsChecked.Value;
             return options;
         }
 
@@ -360,32 +362,38 @@ Network type: {7}, inputs: {8}, outputs: {9}",
         /// <param name="regressionPlot"></param>
         /// <param name="errorPlot"></param>
         /// <param name="network"></param>
-        private void SaveResultsToDisk(LearningSettings learningSettings,
+        private void SaveSingleRunData(LearningSettings learningSettings,
             SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
         {
             DateTime time = report.Time;
             List<int> layersVal = RetrieveLayersVal(learningSettings);
-
             string prefix = report.Name;
-            string regressionFileName = prefix + "_regression.png";
-            string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
-            using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
+
+            if (eid.ReportingOptions.ShouldSavePlots)
             {
-                PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
+                string regressionFileName = prefix + "_regression.png";
+                string regressionSavePath = System.IO.Path.Combine(resultsDirectoryPath, regressionFileName);
+                using (FileStream fileStream = new FileStream(regressionSavePath, FileMode.CreateNew))
+                {
+                    PngExporter.Export(regressionPlot, fileStream, 900, 900, OxyColors.White);
+                }
+
+                string errorFileName = prefix + "_error.png";
+                string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
+                using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
+                {
+                    PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
+                }
             }
 
-            string errorFileName = prefix + "_error.png";
-            string errorSavePath = System.IO.Path.Combine(resultsDirectoryPath, errorFileName);
-            using (FileStream fileStream = new FileStream(errorSavePath, FileMode.CreateNew))
+            if (eid.ReportingOptions.ShouldSaveRunInfos)
             {
-                PngExporter.Export(errorPlot, fileStream, 900, 900, OxyColors.White);
+                string infoFileName = prefix + "_info.txt";
+                string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
+
+                FileManager.SaveTextFile(infoSavePath,
+                    GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
             }
-
-            string infoFileName = prefix + "_info.txt";
-            string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
-
-            FileManager.SaveTextFile(infoSavePath,
-                GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
         }
 
         private List<int> RetrieveLayersVal(LearningSettings learningSettings)
@@ -419,22 +427,21 @@ Network type: {7}, inputs: {8}, outputs: {9}",
             ErrorPlotBuilder errorBuilder = new ErrorPlotBuilder(eid.ErrorScale);
             PlotModel errorPlot = errorBuilder.SetUpModel(result.LearningResult.MSEHistory);
 
-            if (eid.ReportingOptions.ShouldSave)
-            {
-                SaveResultsToDisk(settings, result, regressionPlot, errorPlot, result.Network);
-            }
+            SaveSingleRunData(settings, result, regressionPlot, errorPlot, result.Network);
 
-            if (eid.ReportingOptions.ShouldDisplay)
+            if (eid.ReportingOptions.ShouldDisplayPlots)
             {
                 DisplayResults(regressionPlot, errorPlot, result.LearningResult);
             }
         }
 
-        private void CreateResultsDirectory(DateTime time)
+        private void CreateResultDirectories(DateTime time)
         {
             string dirName = runsPerSettings.ToString() + "_runs_" + time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
             resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
             Directory.CreateDirectory(resultsDirectoryPath);
+            innerResultsPath = System.IO.Path.Combine(resultsDirectoryPath, "run_data");
+            Directory.CreateDirectory(innerResultsPath);
         }
 
         private void AppendCSVile(string path, CasesData data)
