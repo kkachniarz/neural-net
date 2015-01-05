@@ -114,6 +114,7 @@ namespace Shell
             BadIterations.IsEnabled = on;
             ActivationCombobox.IsEnabled = on;
             LayersTextBox.IsEnabled = on;
+            LoadDataBtn.IsEnabled = on;
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -154,7 +155,7 @@ namespace Shell
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
-            StartButton.IsEnabled = false;
+            ToggleSensitiveGUIParts(false);
             ToggleAutomationRelatedSettings(true); // user can prepare params for the next run
 
             runsPerSettings = int.Parse(RunsTextBox.Text);
@@ -222,6 +223,13 @@ namespace Shell
             worker.RunWorkerAsync();
         }
 
+        private void ToggleSensitiveGUIParts(bool on)
+        {
+            StartButton.IsEnabled = on;
+            LoadParamsBtn.IsEnabled = on;
+            UnloadParamsBtn.IsEnabled = on;
+        }
+
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error != null)
@@ -231,11 +239,18 @@ namespace Shell
             }
             else
             {
-                Title = "Done.";
+                Title = "Saving results...";
                 SaveResults();
             }
 
-            StartButton.IsEnabled = true;
+            CleanUpAfterWorkerCompleted();
+        }
+
+        private void CleanUpAfterWorkerCompleted()
+        {
+            ToggleSensitiveGUIParts(true);
+            settingsToRun.Clear(); // clear the list itself
+            eid = null;
         }
 
         void worker_DoWork(object sender, DoWorkEventArgs e)
@@ -264,6 +279,12 @@ namespace Shell
 
             aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
             SaveBatchReport(aggregates);
+            ReactToResultsSaved();
+        }
+
+        private void ReactToResultsSaved()
+        {
+            Title = "Done.";
         }
 
         /// <summary>
@@ -277,11 +298,11 @@ namespace Shell
 Params file: 
 {1}
 Date {2}, {3}
-Runs per settings: {4}, discarding {5}% = {6} worst runs per each settings
+Runs per settings: {4}, discarding {5} = {6} worst runs per each settings
 Network type: {7}, inputs: {8}, outputs: {9}",
                 System.IO.Path.GetFileName(eid.DataSetName), paramsFileText,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
-                eid.RunsPerSettings, (eid.DiscardWorstFactor * 100).ToString("F1"), engineResult.WorstDiscardedCount,
+                eid.RunsPerSettings, eid.DiscardWorstFactor.ToString("P1"), engineResult.WorstDiscardedCount,
                 eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount);
             sb.AppendLine();
             sb.AppendLine("-------------------------------------------------------------------");

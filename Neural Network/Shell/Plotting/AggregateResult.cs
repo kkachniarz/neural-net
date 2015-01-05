@@ -17,9 +17,10 @@ namespace Shell.Plotting
     public class AggregateResult
     {
         public double AverageError { get; private set; }
-        public int RunCount { get; private set; }
         public double AverageSecondsTaken { get; private set; }
-        public int BestErrorIndex { get; private set; }
+        public double PercentageLearningStuck { get; private set; }
+        public int RunCount { get; private set; }       
+        public int BestErrorIndex { get; private set; }     
 
         private Vector<double> Errors;
         private Vector<double> DirectionMisguessRates;
@@ -51,6 +52,7 @@ namespace Shell.Plotting
             AverageSecondsTaken = timesTaken.Average(x => x.TotalSeconds);
             Reports = reports.ToList(); // create copies of references
             BestErrorIndex = Errors.MinimumIndex();
+            PercentageLearningStuck = (double)reports.Count(x => x.LearningResult.GotStuck) / (double)reports.Count;
         }
 
         public override string ToString()
@@ -70,6 +72,7 @@ namespace Shell.Plotting
             sb.AppendFormat("Best error: {0}, iterations used: {1}\r\n", Errors.Min().ToString("E2"), Iterations[BestErrorIndex]);
             sb.AppendFormat("Best direction misguess factor: {0}, iterations used: {1}\r\n", 
                 DirectionMisguessRates.Min().ToString("E2"), Iterations[DirectionMisguessRates.MinimumIndex()]);
+            sb.AppendFormat("Training got stuck: {0} of the time", PercentageLearningStuck.ToString("P1"));
             sb.AppendLine();
 
             //sb.AppendFormat("Worst error: {0}\r\n", Errors.Max().ToString());

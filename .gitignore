@@ -36,3 +36,14 @@
 /Neural Network/Shell/obj/Debug
 /Neural Network/UnitTests/bin/Debug
 /Neural Network/UnitTests/obj/Debug
+/Neural Network/Shell/obj/Release
+/Neural Network/UnitTests/bin/Release
+/Neural Network/UnitTests/obj/Release
+/Neural Network/Shell/bin/Release
+/Neural Network/SharpNN/bin/Release
+/Neural Network/SharpNN/obj/Release
+/Neural Network/RecursiveNN/obj/Release
+/Neural Network/RecursiveNN/bin/Release
+/Neural Network/LearningNN/obj/Release
+/Neural Network/LearningNN/bin/Release
+/doc/Thumbs.db

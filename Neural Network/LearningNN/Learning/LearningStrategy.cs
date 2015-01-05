@@ -16,7 +16,8 @@ namespace LearningNN.Learning
         /// <summary>
         /// Total time taken by the last training.
         /// </summary>
-        public TimeSpan TimeTaken { get; private set; }
+        public TimeSpan TimeTaken { get; protected set; }
+        public bool GotStuck { get; protected set; }
 
         protected bool finished;
         protected INetwork network;
@@ -32,6 +33,7 @@ namespace LearningNN.Learning
             this.LearningRate = learningRate;
             this.Momentum = momentum;
             this.TimeTaken = TimeSpan.Zero;
+            this.GotStuck = false;
         }
 
         public virtual List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)

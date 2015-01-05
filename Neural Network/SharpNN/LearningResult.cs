@@ -12,6 +12,7 @@ namespace SharpNN
         public List<double> MSEHistory { get; set; }
         public double TestSetError { get; set; }
         public double DirectionGuessRate { get; set; }
+        public bool GotStuck { get; set; }
         public TimeSpan TimeTaken { get; set; }
         public double DirectionMisguessRate
         {

@@ -97,7 +97,11 @@ namespace LearningNN.Learning
             }
             else if(iteration == (int)(0.2 * IterLimit))
             {
-                return CheckTrainingStuck(0, 0.02);
+                return CheckTrainingStuck(1, 0.02);
+            }
+            else if(iteration == UNTOUCHABLE_ITERS + 1)
+            {
+                return CheckTrainingStuck(0, 0.01);
             }
 
             return false;
@@ -121,6 +125,7 @@ namespace LearningNN.Learning
             double ImprovementFrom1st = (nowErr - fromErr) / fromErr;
             if(ImprovementFrom1st < minImprovementFactor)
             {
+                GotStuck = true;
                 return true;
             }
 

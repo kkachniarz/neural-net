@@ -103,7 +103,7 @@
                ToolTip="Percentage of the data set that will be used for network training"/>
         <TextBox Name="TrainSetPercentage" Grid.Row="11" Grid.Column="1" Text="0.7"/>
 
-        <Button Grid.Row="12" Grid.Column="0" Content="Load data" Click="ReadDataSet"/>
+        <Button Grid.Row="12" Grid.Column="0" Content="Load data" Name="LoadDataBtn" Click="ReadDataSet"/>
         <Label Name="TrainSetLabel" Grid.Row="12" Grid.Column="1" 
                Content="..."/>
 

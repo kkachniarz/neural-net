@@ -31,6 +31,7 @@ namespace LearningNN
             learningResult.TestSetError = AnswerTestSet(network, testData);
             learningResult.DirectionGuessRate = CalculateDirectionGuessed(testData);
             learningResult.TimeTaken = learningStrategy.TimeTaken;
+            learningResult.GotStuck = learningStrategy.GotStuck;
             return learningResult;
         }
 
