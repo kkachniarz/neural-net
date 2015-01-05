@@ -44,7 +44,7 @@ namespace Shell
         {
             this.eid = engineInitData;
             this.mainWindow = mainWindow;
-            discardCount = (int)(eid.DiscardWorstFactor * (double)eid.RunsPerSettings);
+            discardCount = (int)(eid.DiscardWorstFactor * eid.RunsPerSettings);
         }
 
         public EngineResult Run()
@@ -55,7 +55,7 @@ namespace Shell
                 for (int i = 0; i < eid.RunsPerSettings; i++)
                 {
                     runCounter++;
-                    List<int> layersVal = BuildLayersVal();
+                    List<int> layersVal = BuildLayersVal(learningSettings);
                     BuildDataSet(layersVal);
                     INetwork network = CreateNetwork(learningSettings, layersVal);
 
@@ -68,11 +68,12 @@ namespace Shell
 
                     NormalizeDataBack(network, trainSet, testSet);
                     resultsBySettings[learningSettings].Add(new SingleRunReport(
-                        network, layersVal, DateTime.Now, learningResult, trainSet, testSet));
+                        network, DateTime.Now, learningResult, trainSet, testSet));
                 }
 
+                // use train error as criterion to simulate real-life ("we cannot use test set results yet - test set is the future")
                 resultsBySettings[learningSettings].RemoveHighestValues(
-                    r => r.LearningResult.TestSetError, discardCount);
+                    r => r.LearningResult.FinalTrainError, discardCount); 
             }
 
             EngineResult result = new EngineResult();
@@ -82,13 +83,13 @@ namespace Shell
             return result;
         }
 
-        private List<int> BuildLayersVal()
+        private List<int> BuildLayersVal(LearningSettings lSettings)
         {
             List<int> ret = new List<int>();
             ret.Add(eid.InputCount);
-            foreach (int neuronCount in eid.HiddenNeuronCounts)
+            foreach (int neuronCount in lSettings.HiddenNeuronCounts)
             {
-                ret.Add(neuronCount); //TODO: Later layer counts should be configurable in params file / learning settings
+                ret.Add(neuronCount);
             }
 
             ret.Add(eid.OutputCount);

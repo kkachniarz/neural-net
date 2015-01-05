@@ -95,7 +95,7 @@ namespace Shell
 
         private void UnloadParameters(object sender, RoutedEventArgs e)
         {
-            settingsToRun.Clear();
+            settingsToRun = new List<LearningSettings>(); // to create a new reference (safe for background worker)
             parametersFileName = "(not used)";
             ToggleAutomationRelatedSettings(true);
             LoadParametersLabel.Content = "...";
@@ -108,6 +108,7 @@ namespace Shell
             MaxIterations.IsEnabled = on;
             BadIterations.IsEnabled = on;
             ActivationCombobox.IsEnabled = on;
+            LayersTextBox.IsEnabled = on;
         }
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
@@ -149,9 +150,10 @@ namespace Shell
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
             StartButton.IsEnabled = false;
+            ToggleAutomationRelatedSettings(true); // user can prepare params for the next run
 
             runsPerSettings = int.Parse(RunsTextBox.Text);
-            string[] layersText = LayersTextBox.Text.Split(new string[] { ",", " ", "-", "_", "." }, StringSplitOptions.RemoveEmptyEntries);
+          
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
 
             int pcaDimensions = 0;
@@ -199,7 +201,6 @@ namespace Shell
 
             eid.ReportingOptions = reportingOptions;
 
-            eid.HiddenNeuronCounts = layersText.Select(s => int.Parse(s)).ToList(); // TODO: test
             eid.CsvLines = csvLines;
             eid.SettingsToRun = settingsToRun;
 
@@ -212,13 +213,23 @@ namespace Shell
             worker = new BackgroundWorker();
             worker.DoWork += worker_DoWork;
             worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+
             worker.RunWorkerAsync();
         }
 
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            Title = "Done.";
-            SaveResults();
+            if (e.Error != null)
+            {
+                Title = "ERROR";
+                MessageBox.Show(e.Error.ToString());
+            }
+            else
+            {
+                Title = "Done.";
+                SaveResults();
+            }
+
             StartButton.IsEnabled = true;
         }
 
@@ -226,6 +237,65 @@ namespace Shell
         {
             Engine engine = new Engine(eid, this);
             engineResult = engine.Run();
+        }
+
+        private void SaveResults()
+        {
+            List<AggregateResult> aggregates = new List<AggregateResult>();
+            int lsID = 0;
+            foreach (KeyValuePair<LearningSettings, List<SingleRunReport>> kvp in engineResult.ResultsBySettings)
+            {
+                lsID++;
+
+                kvp.Value.Sort((a, b) => Math.Sign(a.LearningResult.TestSetError - b.LearningResult.TestSetError)); // sort by errror asc
+                for (int i = 0; i < kvp.Value.Count; i++)
+                {
+                    kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
+                    ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
+                }
+
+                aggregates.Add(new AggregateResult(kvp.Value, kvp.Key));
+            }
+
+            aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
+            SaveBatchReport(aggregates);
+        }
+
+        /// <summary>
+        /// Saves the main report, a comparison of all learning settings, to a text file.
+        /// </summary>
+        /// <param name="sortedAverages"></param>
+        private void SaveBatchReport(List<AggregateResult> sortedAverages)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat(@"Data set: {0}
+Params file: {1}
+Date {2} Time {3}
+Runs per settings: {4}, discarding {5}% = {6} worst runs per each settings
+Network type: {7}, inputs: {8}, outputs: {9}",
+                System.IO.Path.GetFileName(eid.DataSetName), eid.ParametersFileName,
+                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
+                eid.RunsPerSettings, (eid.DiscardWorstFactor * 100).ToString("F1"), engineResult.WorstDiscardedCount,
+                eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount);
+            sb.AppendLine();
+            sb.AppendLine("-------------------------------------------------------------------");
+            sb.AppendLine();
+
+            foreach (AggregateResult ar in sortedAverages)
+            {
+                sb.AppendLine(ar.ToString());
+                sb.AppendLine();
+            }
+
+            string reportName = "REPORT.txt";
+            string reportPath = System.IO.Path.Combine(resultsDirectoryPath, reportName);
+            using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
+            {
+                using (StreamWriter sw = new StreamWriter(fileStream))
+                {
+                    sw.Write(sb.ToString());
+                }
+            }
         }
 
         /// <summary>
@@ -262,6 +332,7 @@ namespace Shell
             lSettings.ValidationSetSize = 0.2f;
             lSettings.Activation = ((ActivationType)ActivationCombobox.SelectedItem == ActivationType.Bipolar) ?
                 (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
+            lSettings.SetParamByTitle("HID", LayersTextBox.Text);
 
             return lSettings;
         }
@@ -289,10 +360,11 @@ namespace Shell
         /// <param name="regressionPlot"></param>
         /// <param name="errorPlot"></param>
         /// <param name="network"></param>
-        private void SaveResultsToDisk(List<int> layersVal, LearningSettings learningSettings,
+        private void SaveResultsToDisk(LearningSettings learningSettings,
             SingleRunReport report, PlotModel regressionPlot, PlotModel errorPlot, INetwork network) // could be refactored -> use MainWindow fields or create a class
         {
             DateTime time = report.Time;
+            List<int> layersVal = RetrieveLayersVal(learningSettings);
 
             string prefix = report.Name;
             string regressionFileName = prefix + "_regression.png";
@@ -312,8 +384,16 @@ namespace Shell
             string infoFileName = prefix + "_info.txt";
             string infoSavePath = System.IO.Path.Combine(resultsDirectoryPath, infoFileName);
 
-            FileManager.SaveLearningInfo(infoSavePath,
+            FileManager.SaveTextFile(infoSavePath,
                 GetResultInfo(learningSettings, report.LearningResult, layersVal, network, time));
+        }
+
+        private List<int> RetrieveLayersVal(LearningSettings learningSettings)
+        {
+            List<int> layersVal = new List<int>() { eid.InputCount };
+            layersVal.AddRange(learningSettings.HiddenNeuronCounts);
+            layersVal.Add(eid.OutputCount);
+            return layersVal;
         }
 
         private string GetResultInfo(LearningSettings settings, LearningResult result, List<int> neuronCounts, INetwork network, DateTime now)
@@ -332,74 +412,16 @@ namespace Shell
             return sb.ToString();
         }
 
-        private void SaveBatchReport(List<AggregateResult> sortedAverages)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat(@"Data set: {0}
-Params file: {1}
-Date {2} Time {3}
-Runs per settings: {4}, discarding {5}% = {6} worst results per each settings",
-                System.IO.Path.GetFileName(eid.DataSetName), eid.ParametersFileName,
-                DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
-                eid.RunsPerSettings, (eid.DiscardWorstFactor*100).ToString("F1"), engineResult.WorstDiscardedCount);
-            sb.AppendLine();
-            sb.AppendLine("-------------------------------------------------------------------");
-            sb.AppendLine();
-
-            foreach (AggregateResult ar in sortedAverages)
-            {
-                sb.AppendLine(ar.ToString());
-                sb.AppendLine();
-            }
-
-            string reportName = "REPORT.txt";
-            string reportPath = System.IO.Path.Combine(resultsDirectoryPath, reportName);
-            using (FileStream fileStream = new FileStream(reportPath, FileMode.CreateNew))
-            {
-                using (StreamWriter sw = new StreamWriter(fileStream))
-                {
-                    sw.Write(sb.ToString());
-                }
-            }
-        }
-
-        private void SaveResults()
-        {
-            List<AggregateResult> aggregates = new List<AggregateResult>();
-            int lsID = 0;
-            foreach (KeyValuePair<LearningSettings, List<SingleRunReport>> kvp in engineResult.ResultsBySettings)
-            {
-                lsID++;
-
-                kvp.Value.Sort((a, b) => Math.Sign(a.LearningResult.TestSetError - b.LearningResult.TestSetError)); // sort by errror asc
-                for (int i = 0; i < kvp.Value.Count; i++)
-                {
-                    kvp.Value[i].Name = string.Format("{0}-{1}", lsID, i + 1);
-                    ProcessSingleResultEntry(kvp.Key, kvp.Value[i]);
-                }
-
-                aggregates.Add(new AggregateResult(kvp.Value, kvp.Key));
-            }
-
-            aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
-            SaveBatchReport(aggregates);
-        }
-
-        //private List<SingleRunReport> reports DiscardWorstRuns(List<SingleRunReport> reportsBestToWorst)
-        //{
-        //    HashSet<SingleRunReport> excludedReports;
-        //    List<SingleRunReport>
-        //}
-
         private void ProcessSingleResultEntry(LearningSettings settings, SingleRunReport result)
         {
             RegressionPlotBuilder regressionBuilder = new RegressionPlotBuilder();
             PlotModel regressionPlot = regressionBuilder.Build1DRegressionModel(result.TrainSet, result.TestSet, eid.PlotAgainstInput);
             ErrorPlotBuilder errorBuilder = new ErrorPlotBuilder(eid.ErrorScale);
             PlotModel errorPlot = errorBuilder.SetUpModel(result.LearningResult.MSEHistory);
+
             if (eid.ReportingOptions.ShouldSave)
             {
-                SaveResultsToDisk(result.LayersVal, settings, result, regressionPlot, errorPlot, result.Network);
+                SaveResultsToDisk(settings, result, regressionPlot, errorPlot, result.Network);
             }
 
             if (eid.ReportingOptions.ShouldDisplay)
@@ -410,7 +432,7 @@ Runs per settings: {4}, discarding {5}% = {6} worst results per each settings",
 
         private void CreateResultsDirectory(DateTime time)
         {
-            string dirName = time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
+            string dirName = runsPerSettings.ToString() + "_runs_" + time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
             resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
             Directory.CreateDirectory(resultsDirectoryPath);
         }

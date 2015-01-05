@@ -18,20 +18,18 @@ namespace Shell.Plotting
         public IDataSet TrainSet;
         public IDataSet TestSet;
         public INetwork Network;
-        public List<int> LayersVal; // tmp, later should be moved to LearningSettings and required in parameters file
 
         public string Name { get; set; }
 
-        public SingleRunReport(INetwork net, List<int> lval, DateTime time, LearningResult lres)
+        public SingleRunReport(INetwork net, DateTime time, LearningResult lres)
         {
             LearningResult = lres;
             Network = net;
-            LayersVal = lval;
             Time = time;
         }
 
-        public SingleRunReport(INetwork net, List<int> lval, DateTime time, LearningResult lres, IDataSet train, IDataSet test) 
-            : this(net, lval, time, lres)
+        public SingleRunReport(INetwork net, DateTime time, LearningResult lres, IDataSet train, IDataSet test) 
+            : this(net, time, lres)
         {
             TrainSet = train;
             TestSet = test;

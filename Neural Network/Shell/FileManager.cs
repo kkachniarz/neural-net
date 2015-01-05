@@ -85,14 +85,13 @@ namespace Shell
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine(); // data
-                line = line.Replace(" ", "");
                 int commentIndex = line.IndexOf("//");
                 if(commentIndex >= 0)
                 {
                     line = line.Substring(0, commentIndex);
                 }
 
-                string[] values = line.Split(',', ':');
+                string[] values = line.Split(new string[]{",", ":", " "}, StringSplitOptions.RemoveEmptyEntries);
                 if(values.Length == 0)
                 {
                     continue;
@@ -101,11 +100,10 @@ namespace Shell
                 splitLines.Add(values);
             }
 
-            Dictionary<string, List<string>> groupedParameters = PrepareParameterLists(splitLines);
-            return BuildSettings(groupedParameters, LearningSettings.RequiredTitles);
+            return SettingsMixer.BuildSettings(splitLines);
         }
 
-        public static void SaveLearningInfo(string path, string text)
+        public static void SaveTextFile(string path, string text)
         {
             using (FileStream fs = new FileStream(path, FileMode.CreateNew))
             {
@@ -114,69 +112,6 @@ namespace Shell
                     sw.Write(text);
                 }
             }
-        }
-
-        // TODO: refactor - move these methods outside FileManager class
-        private static List<LearningSettings> BuildSettings(Dictionary<string, List<string>> groupedParameters, 
-            List<string> titles)
-        {            
-            Stack<string> titleStack = new Stack<string>(titles);
-            List<LearningSettings> ret = new List<LearningSettings>();
-            BuildSettingsImplementation(groupedParameters, titleStack, 
-                new LearningSettings(), ret);
-            return ret;
-        }
-
-        private static void BuildSettingsImplementation(Dictionary<string, List<string>> groupedParameters, 
-            Stack<string> titleStack, LearningSettings currentSetting, List<LearningSettings> result)
-        {
-            if(titleStack.Count == 0)
-            {
-                // recursion end
-                result.Add(currentSetting.Clone()); // add a snapshot of the current settings to the result
-                return;
-            }
-
-            string paramTitle = titleStack.Pop();
-            foreach(string paramValue in groupedParameters[paramTitle])
-            {
-                currentSetting.SetParamByTitle(paramTitle, paramValue);
-                BuildSettingsImplementation(groupedParameters, titleStack, currentSetting, result);
-            }
-
-            titleStack.Push(paramTitle);
-        }
-
-        private static Dictionary<string, List<string>> PrepareParameterLists(List<string[]> splitLines)
-        {
-            Dictionary<string, List<string>> stringPresent = new Dictionary<string, List<string>>();
-            foreach(string s in LearningSettings.RequiredTitles)
-            {
-                stringPresent.Add(s, new List<string>());
-            }
-
-            foreach(string[] line in splitLines)
-            {
-                string title = line[0];
-                if(stringPresent.ContainsKey(title))
-                {
-                    for(int i = 1; i < line.Length; i++)
-                    {
-                        stringPresent[title].Add(line[i]);
-                    }
-                }
-            }
-
-            foreach(KeyValuePair<string, List<string>> kvp in stringPresent)
-            {
-                if(kvp.Value.Count == 0)
-                {
-                    throw new ArgumentException(string.Format(
-                        "Values for parameter: {0} have not been provided in the parameters file", kvp.Key));
-                }
-            }
-
-            return stringPresent;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace SharpNN
             }
         }
 
-        public double TrainError // last error in the history recorded during training. This will normally be the last error measured on the validation set.
+        public double FinalTrainError // last error in the history recorded during training. This will normally be the last error measured on the validation set.
         {  
             get
             {

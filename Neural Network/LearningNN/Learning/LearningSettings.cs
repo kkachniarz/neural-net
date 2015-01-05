@@ -21,6 +21,7 @@ namespace LearningNN.Learning
         public float ValidationSetSize { get; set; }
         public int MinIterations { get; set; }
         public IActivation Activation { get; set; }
+        public List<int> HiddenNeuronCounts { get; set; }
 
         private static List<string> requiredTitles = new List<string>()
         {
@@ -28,7 +29,8 @@ namespace LearningNN.Learning
             "M",
             "MAXIT",
             "BADIT", 
-            "FUNC"
+            "FUNC",
+            "HID"
         };
 
         public static List<string> RequiredTitles
@@ -55,6 +57,7 @@ namespace LearningNN.Learning
                 {"MAXIT", ParseMaxIterations},
                 {"BADIT", ParseBadIterations},
                 {"FUNC", ParseActivationFunc},
+                {"HID", ParseHiddenNeuronCounts},
             };
         }
 
@@ -67,6 +70,7 @@ namespace LearningNN.Learning
             Momentum = settings.Momentum;
             MinIterations = settings.MinIterations;
             Activation = settings.Activation.Clone();
+            HiddenNeuronCounts = settings.HiddenNeuronCounts.ToList();
         }
 
         public LearningSettings Clone()
@@ -90,11 +94,12 @@ namespace LearningNN.Learning
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat(@"Learning Rate: {0}
 Momentum: {1}
-Iteration limits: (Max/Bad/Min) {2}/{3}/{4}
-Activation: {5}
-Validation Set Size: {6}",
-                LearningRate, Momentum, MaxIterations, BadIterations, MinIterations, 
-                Activation.Name, ValidationSetSize);
+Activation: {2}
+Hidden neuron counts: {3}
+Iteration limits: (Max/Bad/Min) {4}/{5}/{6}
+Validation Set Size: {7}",
+                LearningRate, Momentum, Activation.Name, string.Join("-", HiddenNeuronCounts),
+                MaxIterations, BadIterations, MinIterations, ValidationSetSize);
             return sb.ToString();
         }
 
@@ -116,6 +121,13 @@ Validation Set Size: {6}",
         private void ParseBadIterations(string str)
         {
              BadIterations = int.Parse(str);
+        }
+
+        private void ParseHiddenNeuronCounts(string str)
+        {
+            string[] layersText = str.Split(new string[] { ",", " ", "-", "_", "." }, 
+                StringSplitOptions.RemoveEmptyEntries);
+            HiddenNeuronCounts = layersText.Select(s => int.Parse(s)).ToList();
         }
 
         private void ParseActivationFunc(string str)

@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Shell.Containers
 {
+    /// <summary>
+    /// Data that is constant for all runs (regardless of learning settings)
+    /// </summary>
     public class EngineInitData
     {
         public double ErrorScale;
@@ -31,7 +34,6 @@ namespace Shell.Containers
 
         public ReportingOptions ReportingOptions;
 
-        public List<int> HiddenNeuronCounts;
         public List<DenseVector> CsvLines;
         public List<LearningSettings> SettingsToRun = new List<LearningSettings>();
 
