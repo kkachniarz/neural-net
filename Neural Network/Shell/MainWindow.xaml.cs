@@ -303,7 +303,8 @@ namespace Shell
 Params text (file name: {1}): 
 {2}
 Date {3}, {4}
-Runs per settings: {5}, discarding {6} = {7} worst runs per each settings\r\n",
+Runs per settings: {5}, discarding {6} = {7} worst runs per each settings
+",
                 System.IO.Path.GetFileName(eid.DataSetName), paramsFileName ?? "",
                 paramsInputText,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
