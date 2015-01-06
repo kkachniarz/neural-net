@@ -72,7 +72,18 @@
 
         <Label Grid.Row="1" Grid.Column="0" Content="Hidden neurons:" 
                ToolTip="First and last layer will be created based on a train set, a test set and a problem type."/>
-        <TextBox Name="LayersTextBox" Grid.Row="1" Grid.Column="1" Text="5"/>
+        <TextBox Name="LayersTextBox" Grid.Row="1" Grid.Column="1" Text="5">
+            <TextBox.ToolTip>
+                <ToolTip>
+                    <StackPanel>
+                        <TextBlock FontWeight="Bold">Attention</TextBlock>
+                        <TextBlock>Comma creates a list of parameters, example: 1, 3-3, 4 
+                            <LineBreak> </LineBreak>
+                        Use hyphen to create more than 1 hidden layer, example: 5-2</TextBlock>
+                    </StackPanel>
+                </ToolTip>
+            </TextBox.ToolTip>
+        </TextBox>
 
         <Label Grid.Row="2" Grid.Column="0" Content="Output count" 
                ToolTip="The number of outputs. Used also for parsing the data"/>
@@ -108,7 +119,18 @@
                Content="..."/>
 
         <StackPanel Orientation="Horizontal" Grid.Row="13" Grid.Column="0" >
-        <Button Content="Load params" Name="LoadParamsBtn" Click="ReadParameters" Width="120"/>
+            <Button Content="Load params" Name="LoadParamsBtn" Click="ReadParameters" Width="120">
+                <Button.ToolTip>
+                    <ToolTip>
+                        <StackPanel>
+                            <TextBlock FontWeight="Bold">Tip</TextBlock>
+                            <TextBlock>You can perform a parameter sweep without loading params file.
+                                <LineBreak> </LineBreak>
+                            Simply use commas to separate multiple parameter values.</TextBlock>
+                        </StackPanel>
+                    </ToolTip>
+                </Button.ToolTip>
+            </Button>
         <Button Content="X" Width="30" Name="UnloadParamsBtn" Click="HandleUnloadParametersClick" Margin="0,0,5,0"/>
             
         </StackPanel>
