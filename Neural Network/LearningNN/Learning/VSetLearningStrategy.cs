@@ -12,7 +12,7 @@ namespace LearningNN.Learning
 {
     public class VSetLearningStrategy : LearningStrategy
     {
-        private const double UNTOUCHABLE_ERROR = 5E-3;
+        private const double UNTOUCHABLE_ERROR = 1E-3;
         private const int UNTOUCHABLE_ITERS = 500;
         public int IterLimit { get; set; }
         public int MaxBadIterations { get; set; }
@@ -114,11 +114,11 @@ namespace LearningNN.Learning
 
         private bool CheckTrainingStuck(int fromIter, double minImprovementFactor)
         {
-            if (errorHistory.Count <= fromIter || errorHistory[fromIter] < UNTOUCHABLE_ERROR
-                || iteration <= UNTOUCHABLE_ITERS)
-            {
-                return false;
-            }
+            //if (errorHistory.Count <= fromIter || errorHistory[fromIter] < UNTOUCHABLE_ERROR
+            //    || iteration <= UNTOUCHABLE_ITERS)
+            //{
+            //    return false;
+            //}
 
             double fromErr = errorHistory[fromIter];
             double nowErr = errorHistory[errorHistory.Count - 1];
