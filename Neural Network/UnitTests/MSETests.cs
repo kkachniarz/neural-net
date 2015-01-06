@@ -85,6 +85,43 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void TestEpochCompletelyWrongEquals1UnipolarWithMargin()
+        {
+            Vector<double> error1 = new DenseVector(new double[] { 0.6, 0.6, 0.6 });
+            Vector<double> error2 = new DenseVector(new double[] { -0.6, -0.6, 0.6 });
+            Vector<double> error3 = new DenseVector(new double[] { 0.6, -0.6, 0.6});
+            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
+            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
+            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+
+            double rawMSESum = mse1 + mse2 + mse3;
+            double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, 0.2, 0.8);
+            Assert.AreEqual(1.0, epochMSE, 0.00001);
+        }
+
+        /// <summary>
+        /// If the data set is normalized to outputs in range [0.2, 0.8], 
+        /// then the error can be up to 1.0 - 0.2 = 0.8 (0.0 - 0.8 = -0.8)
+        /// We can call this an "overflow" - the network output is outside the range of outputs allowed for the data,
+        /// so in such cases the normalized MSE can exceed 1. This is never possible if the margin is 0.
+        /// This phenomenon, however, allows for a more fair comparison of network performance across different margin values.
+        /// </summary>
+        [TestMethod]
+        public void TestEpochWrongOverflowUnipolarWithMargin()
+        {
+            Vector<double> error1 = new DenseVector(new double[] { 0.8, 0.6, 0.6 });
+            Vector<double> error2 = new DenseVector(new double[] { -0.6, -0.75, 0.6 });
+            Vector<double> error3 = new DenseVector(new double[] { 0.6, -0.6, 0.6 });
+            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
+            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
+            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+
+            double rawMSESum = mse1 + mse2 + mse3;
+            double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, 0.2, 0.8);
+            Assert.IsTrue(epochMSE > 1.0);
+        }
+
+        [TestMethod]
         public void TestNormalizorMinMaxGetter()
         {
             double min;

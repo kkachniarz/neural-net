@@ -30,7 +30,7 @@ namespace UnitTests
                 vec[i] = MathHelper.RandomExceptZero(1, 0.2);
             }
 
-            Assert.AreEqual(0, vec.Average(), 0.002);
+            Assert.AreEqual(0, vec.Average(), 0.004);
         }
 
         [TestMethod]
