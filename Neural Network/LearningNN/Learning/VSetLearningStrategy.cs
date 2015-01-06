@@ -114,11 +114,11 @@ namespace LearningNN.Learning
 
         private bool CheckTrainingStuck(int fromIter, double minImprovementFactor)
         {
-            //if (errorHistory.Count <= fromIter || errorHistory[fromIter] < UNTOUCHABLE_ERROR
-            //    || iteration <= UNTOUCHABLE_ITERS)
-            //{
-            //    return false;
-            //}
+            if (errorHistory.Count <= fromIter || errorHistory[fromIter] < UNTOUCHABLE_ERROR
+                || iteration <= UNTOUCHABLE_ITERS)
+            {
+                return false;
+            }
 
             double fromErr = errorHistory[fromIter];
             double nowErr = errorHistory[errorHistory.Count - 1];
