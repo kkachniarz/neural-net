@@ -24,9 +24,6 @@ namespace Neural_Network.Plotting
     /// </summary>
     public partial class NetworkErrorWindow : Window
     {
-        private const double SCALE = 1000.0;
-        private PlotModel plotModel;
-
         public NetworkErrorWindow(PlotModel plotModel, string identifier)
         {
             InitializeComponent();

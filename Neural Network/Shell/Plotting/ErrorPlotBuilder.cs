@@ -21,20 +21,21 @@ namespace Shell.Plotting
         public PlotModel SetUpModel(List<double> trainingSetErrors, List<double> validationSetErrors = null)
         {
             PlotModel plotModel = new PlotModel();
-            var linearAxis1 = new LinearAxis();
-            linearAxis1.TickStyle = TickStyle.Outside;
-            linearAxis1.Position = AxisPosition.Left;
-            linearAxis1.Minimum = 0;
-            linearAxis1.Maximum = trainingSetErrors.Max() * 1.1 * errorScale;
-            linearAxis1.Title = string.Format("Error x {0}", errorScale);
-            plotModel.Axes.Add(linearAxis1);
-            var linearAxis2 = new LinearAxis();
-            linearAxis2.Position = AxisPosition.Bottom;
-            linearAxis2.TickStyle = TickStyle.Outside;
-            linearAxis2.Minimum = 0;
-            linearAxis2.Maximum = trainingSetErrors.Count;
-            linearAxis2.Title = "Iteration";
-            plotModel.Axes.Add(linearAxis2);
+            var errorAxis = new LogarithmicAxis();
+            errorAxis.TickStyle = TickStyle.Outside;
+            errorAxis.Position = AxisPosition.Left;
+            errorAxis.Minimum = 0;
+            errorAxis.Maximum = trainingSetErrors.Max() * 1.1 * errorScale;
+            errorAxis.Title = string.Format("Error x {0}", errorScale.ToString("E0"));
+
+            plotModel.Axes.Add(errorAxis);
+            var iterationAxis = new LinearAxis();
+            iterationAxis.Position = AxisPosition.Bottom;
+            iterationAxis.TickStyle = TickStyle.Outside;
+            iterationAxis.Minimum = 0;
+            iterationAxis.Maximum = trainingSetErrors.Count;
+            iterationAxis.Title = "Iteration";
+            plotModel.Axes.Add(iterationAxis);
 
             var series1 = new LineSeries { Title = "Training set error", MarkerType = MarkerType.None };
 

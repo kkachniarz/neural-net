@@ -26,7 +26,7 @@ namespace Shell
     {
         public bool IsReady { get { return csvLines != null; } }
 
-        private const double ERROR_SCALE = 1000.0;
+        private const double ERROR_SCALE = 1E6;
         private const double DISCARD_FACTOR = 0.2;
         private const int DISPLAY_LIMIT = 10;
 
@@ -169,10 +169,7 @@ namespace Shell
                 settingsToRun = GetLearningSettingsFromUI();
             }
 
-            if (problemType == PartIIProblemType.CTS)
-            {
-                plotAgainstInput = true;
-            }
+            SetPlottingMethod(problemType);
 
             eid = new EngineInitData();
 
@@ -213,6 +210,18 @@ namespace Shell
             worker.RunWorkerCompleted += worker_RunWorkerCompleted;
 
             worker.RunWorkerAsync();
+        }
+
+        private void SetPlottingMethod(PartIIProblemType problemType)
+        {
+            if (problemType == PartIIProblemType.CTS)
+            {
+                plotAgainstInput = true;
+            }
+            else
+            {
+                plotAgainstInput = false;
+            }
         }
 
         private void ToggleSensitiveGUIParts(bool on)
