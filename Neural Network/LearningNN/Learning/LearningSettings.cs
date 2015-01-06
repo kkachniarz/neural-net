@@ -118,11 +118,19 @@ Validation Set Size: {7}",
         private void ParseLearningRate(string str)
         {
             LearningRate = double.Parse(str, CultureInfo.InvariantCulture);
+            if(LearningRate <= 0)
+            {
+                throw new ArgumentException("Learning rate must be above 0");
+            }
         }
 
         private void ParseMomentum(string str)
         {
             Momentum = double.Parse(str, CultureInfo.InvariantCulture);
+            if(Momentum < 0 || Momentum >= 1)
+            {
+                throw new ArgumentException("Momentum must be within [0, 1)");
+            }
         }
 
         private void ParseMaxIterations(string str)
