@@ -50,11 +50,14 @@ namespace Shell.Plotting
             idealAnswer = idealAnswer.OrderBy(a => a.X).ToList();
             networkAnswer = networkAnswer.OrderBy(a => a.X).ToList();
 
-            var series1 = new LineSeries { Title = "Training data", MarkerType = MarkerType.Triangle, MarkerSize = 1.0, MarkerFill = OxyColors.DarkGray };
+            var series1 = new LineSeries { Title = "Training set", MarkerType = MarkerType.Circle, MarkerSize = 1.0, 
+               StrokeThickness = 0.2, Color = OxyColors.LightBlue, MarkerFill = OxyColors.DarkCyan};
             trainingPoints.ForEach(x => series1.Points.Add(CreateDataPoint(x)));
-            var series2 = new LineSeries { Title = "Ideal answer", MarkerType = MarkerType.Circle, MarkerSize = 1.0, MarkerFill = OxyColors.Black };
+            var series2 = new LineSeries { Title = "Test set", MarkerType = MarkerType.Circle, MarkerSize = 1.5, 
+                 StrokeThickness = 0.5, Color = OxyColors.Navy, MarkerFill = OxyColors.Black };
             idealAnswer.ForEach(x => series2.Points.Add(CreateDataPoint(x)));
-            var series3 = new LineSeries { Title = "Network answer", MarkerType = MarkerType.Diamond, MarkerSize = 1.0, MarkerFill = OxyColors.Red };
+            var series3 = new LineSeries { Title = "Network answer", MarkerType = MarkerType.Diamond, MarkerSize = 1.5, 
+                StrokeThickness = 1.0, Color = OxyColors.Orange, MarkerFill = OxyColors.Red };
             networkAnswer.ForEach(x => series3.Points.Add(CreateDataPoint(x)));
 
             double minX = Math.Min(trainingPoints.Min(p => p.X), networkAnswer.Concat(idealAnswer).Min(p => p.X));
