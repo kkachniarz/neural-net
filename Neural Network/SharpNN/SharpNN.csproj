@@ -70,7 +70,6 @@
     <Compile Include="Layers\Layer.cs" />
     <Compile Include="LearningResult.cs" />
     <Compile Include="MathHelper.cs" />
-    <Compile Include="MSECalculator.cs" />
     <Compile Include="NeuralNetwork.cs" />
     <Compile Include="Layers\WeightedLayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

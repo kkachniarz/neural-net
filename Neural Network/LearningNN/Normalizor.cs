@@ -8,8 +8,8 @@ namespace LearningNN
 {
     public class Normalizor
     {
-        const double EPSILON = 1E-5;
-        const double MARGIN_FACTOR = 0.2;
+        public const double MARGIN_FACTOR = 0.2;
+        const double EPSILON = 1E-5;        
 
         private double maxValueFrom;
         private double minValueFrom;
@@ -24,9 +24,9 @@ namespace LearningNN
             minValueFrom = _minValueFrom;
             maxValueTo = _maxValueTo;
             minValueTo = _minValueTo;
-            double margin = (maxValueTo - minValueTo) * MARGIN_FACTOR;
-            minValueToCorrected = minValueTo + margin;
-            maxValueToCorrected = maxValueTo - margin;
+            double marginAmount = (maxValueTo - minValueTo) * MARGIN_FACTOR;
+            minValueToCorrected = minValueTo + marginAmount;
+            maxValueToCorrected = maxValueTo - marginAmount;
 	    }
 
         public double Normalize(double value)
@@ -47,6 +47,14 @@ namespace LearningNN
             {
                 throw new ArgumentException("Value is out of the range.");
             }
+        }
+
+        public static void GetMinMaxActivationWithMargin(double minActivation, double maxActivation,
+            out double min, out double max)
+        {
+            double marginAmount = (maxActivation - minActivation) * Normalizor.MARGIN_FACTOR;
+            min = minActivation + marginAmount;
+            max = maxActivation - marginAmount;
         }
     }
 }

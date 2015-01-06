@@ -13,6 +13,7 @@ namespace LearningNN.DataSet
         Pattern GetPatternAt(int i);
         IEnumerable<Pattern> EnumeratePatterns();
         IDataSet Clone();
+
         void UpdateExtremums();
         void Normalize(double minTo, double maxTo, DataExtremumsForNetwork extremums);
         void NormalizeBack();

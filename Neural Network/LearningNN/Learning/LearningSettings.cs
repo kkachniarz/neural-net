@@ -19,6 +19,7 @@ namespace LearningNN.Learning
         public int BadIterations { get; set; }
         public double LearningRate { get; set; }
         public double Momentum { get; set; }
+
         public float ValidationSetSize { get; set; }
         public int MinIterations { get; set; }
         public IActivation Activation { get; set; }
@@ -69,8 +70,8 @@ namespace LearningNN.Learning
             BadIterations = settings.BadIterations;
             LearningRate = settings.LearningRate;
             Momentum = settings.Momentum;
-            MinIterations = settings.MinIterations;
             Activation = settings.Activation.Clone();
+            MinIterations = settings.MinIterations;
             HiddenNeuronCounts = settings.HiddenNeuronCounts.ToList();
         }
 
@@ -101,7 +102,8 @@ Activation: {2}
 Hidden neuron counts: {3}
 Iteration limits: (Max/Bad/Min) {4}/{5}/{6}
 Validation Set Size: {7}",
-                LearningRate, Momentum, Activation.Name, string.Join("-", HiddenNeuronCounts),
+                LearningRate, Momentum,
+                Activation.Name, string.Join("-", HiddenNeuronCounts),
                 MaxIterations, BadIterations, MinIterations, ValidationSetSize);
             return sb.ToString();
         }

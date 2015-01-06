@@ -67,10 +67,13 @@ namespace LearningNN.Learning
             double mseSum = 0.0;
             foreach (Pattern p in dataSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mseSum += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
-            return MSECalculator.CalculateEpochMSE(mseSum, dataSet.PatternCount, network.Activation);
+            double min;
+            double max;
+            Normalizor.GetMinMaxActivationWithMargin(network.Activation.MinValue, network.Activation.MaxValue, out min, out max);
+            return MSECalculator.CalculateEpochMSE(mseSum, dataSet.PatternCount, min, max);
         }
     }
 }

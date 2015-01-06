@@ -14,10 +14,21 @@ using LearningNN.DataSet;
 
 namespace LearningNN
 {
-    public static class BackpropagationManager
+    public class BackpropagationManager
     {
-        public static LearningResult Run(INetwork network, IDataSet trainData, IDataSet testData,
-            ILearningStrategy learningStrategy, IStatusReporter statusHolder)
+        private INetwork network;
+        private IDataSet trainSet;
+        private IDataSet testSet;
+
+        public BackpropagationManager(INetwork network, IDataSet train, IDataSet test)
+        {
+            this.network = network;
+            this.trainSet = train;
+            this.testSet = test;
+        }
+
+        public LearningResult Run(ILearningStrategy learningStrategy, 
+            LearningSettings lSettings, IStatusReporter statusHolder)
         {
             //AssertArguments(trainData, testData, learningRate); // TODO: write assertions
 
@@ -27,44 +38,47 @@ namespace LearningNN
             }
 
             LearningResult learningResult = new LearningResult();
-            learningResult.MSEHistory = learningStrategy.Train(network, trainData, statusHolder);
-            learningResult.TestSetError = AnswerTestSet(network, testData);
-            learningResult.DirectionGuessRate = CalculateDirectionGuessed(testData);
+            learningResult.MSEHistory = learningStrategy.Train(network, trainSet, statusHolder);
+            learningResult.TestSetError = AnswerTestSet();
+            learningResult.DirectionGuessRate = CalculateDirectionGuessed();
             learningResult.TimeTaken = learningStrategy.TimeTaken;
             learningResult.GotStuck = learningStrategy.GotStuck;
             return learningResult;
         }
 
-        private static double AnswerTestSet(INetwork network, IDataSet testDataSet)
+        private double AnswerTestSet()
         {
-            foreach (Pattern p in testDataSet.EnumeratePatterns())
+            foreach (Pattern p in testSet.EnumeratePatterns())
             {
                 p.NetworkAnswer = network.ComputeOutput(p.Input);
             }
 
             double mseSum = 0.0;
-            foreach (Pattern p in testDataSet.EnumeratePatterns())
+            foreach (Pattern p in testSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - p.NetworkAnswer);
+                mseSum += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - p.NetworkAnswer);
             }
 
-            return MSECalculator.CalculateEpochMSE(mseSum, testDataSet.PatternCount, network.Activation);
+            double min;
+            double max;
+            Normalizor.GetMinMaxActivationWithMargin(network.Activation.MinValue, network.Activation.MaxValue, out min, out max);
+            return MSECalculator.CalculateEpochMSE(mseSum, testSet.PatternCount, min, max);
         }
 
-        private static double CalculateDirectionGuessed(IDataSet testDataSet) // assumes 1 output. 
+        private double CalculateDirectionGuessed() // assumes 1 output. 
         {
-            if (testDataSet.PatternCount <= 1)
+            if (testSet.PatternCount <= 1)
             {
                 throw new ArgumentException("Pattern count of the test set must be greater than 1");
             }
 
-            if (testDataSet.GetPatternAt(0).IdealOutput.Count > 1)
+            if (testSet.GetPatternAt(0).IdealOutput.Count > 1)
             {
                 throw new ArgumentException("To calculate how often the direction of change is guessed " +
                 "correctly, exactly 1 output value is required");
             }
 
-            return CalculateDirectionImplementation(testDataSet.EnumeratePatterns().ToList());
+            return CalculateDirectionImplementation(testSet.EnumeratePatterns().ToList());
         }
 
         public static double CalculateDirectionImplementation(List<Pattern> patterns) // Public for unit tests

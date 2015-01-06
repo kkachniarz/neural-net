@@ -27,6 +27,9 @@ namespace LearningNN.Learning
         private double previousError = 1.0;
         private double lowestError = double.MaxValue;
 
+        private double minValidOutput; // this is network min activation + margin value, that is, the minimum value that could represent an output in the data.
+        private double maxValidOutput;
+
         private object savedWeights = null;
 
         public VSetLearningStrategy(LearningSettings lSettings)
@@ -35,22 +38,24 @@ namespace LearningNN.Learning
             this.vSetPercentage = lSettings.ValidationSetSize;
             this.MaxBadIterations = lSettings.BadIterations;
             this.IterLimit = lSettings.MaxIterations;
-            this.MinIterations = lSettings.MinIterations < lSettings.MaxIterations? 
+            this.MinIterations = lSettings.MinIterations < lSettings.MaxIterations ?
                 lSettings.MinIterations : lSettings.MaxIterations;
         }
 
         public override List<double> Train(INetwork network, IDataSet data, IStatusReporter statusHolder)
         {
             vSetStart = (int)((1 - vSetPercentage) * data.PatternCount);
+            Normalizor.GetMinMaxActivationWithMargin(network.Activation.MinValue, network.Activation.MaxValue,
+                out minValidOutput, out maxValidOutput);
             return base.Train(network, data, statusHolder);
         }
 
         protected override double RunEpoch()
-        {            
+        {
             DoTrainSetEpoch();
             currentError = CalculateMSEValidation();
 
-            if(currentError < lowestError)
+            if (currentError < lowestError)
             {
                 lowestError = currentError;
                 savedWeights = network.SaveWeights();
@@ -80,7 +85,7 @@ namespace LearningNN.Learning
 
         private bool ShouldStop()
         {
-            return (badIterations > MaxBadIterations && iteration >= MinIterations) 
+            return (badIterations > MaxBadIterations && iteration >= MinIterations)
                 || iteration >= IterLimit;
         }
 
@@ -91,15 +96,15 @@ namespace LearningNN.Learning
         /// <returns></returns>
         private bool IsTrainingStuck()
         {
-            if(iteration == (int)(0.1 * IterLimit))
+            if (iteration == (int)(0.1 * IterLimit))
             {
                 return CheckTrainingStuck(0, 0.01);
             }
-            else if(iteration == (int)(0.2 * IterLimit))
+            else if (iteration == (int)(0.2 * IterLimit))
             {
                 return CheckTrainingStuck(1, 0.02);
             }
-            else if(iteration == UNTOUCHABLE_ITERS + 1)
+            else if (iteration == UNTOUCHABLE_ITERS + 1)
             {
                 return CheckTrainingStuck(0, 0.01);
             }
@@ -122,8 +127,8 @@ namespace LearningNN.Learning
                 return false;
             }
 
-            double ImprovementFrom1st = (nowErr - fromErr) / fromErr;
-            if(ImprovementFrom1st < minImprovementFactor)
+            double improvementFactor = (fromErr - nowErr) / fromErr;
+            if (improvementFactor < minImprovementFactor)
             {
                 GotStuck = true;
                 return true;
@@ -157,10 +162,10 @@ namespace LearningNN.Learning
             for (int i = vSetStart; i < dataSet.PatternCount; i++)
             {
                 Pattern p = dataSet.GetPatternAt(i);
-                mse += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mse += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
-            return MSECalculator.CalculateEpochMSE(mse, dataSet.PatternCount - vSetStart + 1, network.Activation);
+            return CalculateEpochMSE(mse, dataSet.PatternCount - vSetStart);
         }
 
         private double CalculateMSETrain()
@@ -169,10 +174,15 @@ namespace LearningNN.Learning
             for (int i = 0; i < vSetStart; i++)
             {
                 Pattern p = dataSet.GetPatternAt(i);
-                mse += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mse += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
-            return MSECalculator.CalculateEpochMSE(mse, vSetStart, network.Activation);
+            return CalculateEpochMSE(mse, vSetStart);
+        }
+
+        private double CalculateEpochMSE(double mse, double count)
+        {
+            return MSECalculator.CalculateEpochMSE(mse, count, minValidOutput, maxValidOutput);
         }
     }
 }

@@ -63,8 +63,8 @@ namespace Shell
                     CheckIfPerformPCA(network);
                     learningStrategy = new VSetLearningStrategy(learningSettings);
 
-                    var learningResult = BackpropagationManager.Run(network, trainSet, testSet,
-                        learningStrategy, this);
+                    BackpropagationManager backpropMan = new BackpropagationManager(network, trainSet, testSet);
+                    var learningResult = backpropMan.Run(learningStrategy, learningSettings, this);
 
                     NormalizeDataBack(network, trainSet, testSet);
                     resultsBySettings[learningSettings].Add(new SingleRunReport(

@@ -306,13 +306,16 @@ namespace Shell
 Params file: 
 {1}
 Date {2}, {3}
-Runs per settings: {4}, discarding {5} = {6} worst runs per each settings
-Network type: {7}, inputs: {8}, outputs: {9}
-Total time taken: {10}s.",
+Runs per settings: {4}, discarding {5} = {6} worst runs per each settings\r\n",
                 System.IO.Path.GetFileName(eid.DataSetName), paramsFileText,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
-                eid.RunsPerSettings, eid.DiscardWorstFactor.ToString("P1"), engineResult.WorstDiscardedCount,
+                eid.RunsPerSettings, eid.DiscardWorstFactor.ToString("P1"), engineResult.WorstDiscardedCount);
+
+                sb.AppendFormat(@"Network type: {0}, inputs: {1}, outputs: {2}
+Outputs normalized within {3} - {4} of activation range.
+Total time taken: {5}s.",
                 eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount,
+                Normalizor.MARGIN_FACTOR.ToString("P1"), (1.0-Normalizor.MARGIN_FACTOR).ToString("P1"),
                 sortedAverages.Sum(a => a.AverageSecondsTaken * a.RunCount).ToString("F1"));
             sb.AppendLine();
             sb.AppendLine("-------------------------------------------------------------------");
