@@ -12,8 +12,6 @@ namespace LearningNN.Learning
 {
     public class VSetLearningStrategy : LearningStrategy
     {
-        private const double UNTOUCHABLE_ERROR = 1E-3;
-        private const int UNTOUCHABLE_ITERS = 500;
         public int IterLimit { get; set; }
         public int MaxBadIterations { get; set; }
         public int MinIterations { get; set; }
@@ -70,7 +68,7 @@ namespace LearningNN.Learning
                 badIterations = 0;
             }
 
-            if (ShouldStop() || IsTrainingStuck())
+            if (ShouldStop())
             {
                 finished = true;
                 // restore the best weights
@@ -87,54 +85,6 @@ namespace LearningNN.Learning
         {
             return (badIterations > MaxBadIterations && iteration >= MinIterations)
                 || iteration >= IterLimit;
-        }
-
-        /// <summary>
-        /// Tries to detect a network that got stuck right from the beginning.
-        /// We don't want to lose time for training this network - according to our experience, it'll never learn.
-        /// </summary>
-        /// <returns></returns>
-        private bool IsTrainingStuck()
-        {
-            if (iteration == (int)(0.1 * IterLimit))
-            {
-                return CheckTrainingStuck(0, 0.01);
-            }
-            else if (iteration == (int)(0.2 * IterLimit))
-            {
-                return CheckTrainingStuck(1, 0.02);
-            }
-            else if (iteration == UNTOUCHABLE_ITERS + 1)
-            {
-                return CheckTrainingStuck(0, 0.01);
-            }
-
-            return false;
-        }
-
-        private bool CheckTrainingStuck(int fromIter, double minImprovementFactor)
-        {
-            if (errorHistory.Count <= fromIter || errorHistory[fromIter] < UNTOUCHABLE_ERROR
-                || iteration <= UNTOUCHABLE_ITERS)
-            {
-                return false;
-            }
-
-            double fromErr = errorHistory[fromIter];
-            double nowErr = errorHistory[errorHistory.Count - 1];
-            if (nowErr < UNTOUCHABLE_ERROR) // if the error is good enough, just let it continue.
-            {
-                return false;
-            }
-
-            double improvementFactor = (fromErr - nowErr) / fromErr;
-            if (improvementFactor < minImprovementFactor)
-            {
-                GotStuck = true;
-                return true;
-            }
-
-            return false;
         }
 
         private void DoTrainSetEpoch()
