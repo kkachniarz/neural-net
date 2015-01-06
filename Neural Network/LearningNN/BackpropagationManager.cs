@@ -56,7 +56,7 @@ namespace LearningNN
             double mseSum = 0.0;
             foreach (Pattern p in testSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - p.NetworkAnswer);
+                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - p.NetworkAnswer);
             }
 
             double min;

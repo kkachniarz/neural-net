@@ -67,7 +67,7 @@ namespace LearningNN.Learning
             double mseSum = 0.0;
             foreach (Pattern p in dataSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
             double min;

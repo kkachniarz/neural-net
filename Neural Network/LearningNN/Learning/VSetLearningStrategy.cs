@@ -162,7 +162,7 @@ namespace LearningNN.Learning
             for (int i = vSetStart; i < dataSet.PatternCount; i++)
             {
                 Pattern p = dataSet.GetPatternAt(i);
-                mse += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mse += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
             return CalculateEpochMSE(mse, dataSet.PatternCount - vSetStart);
@@ -174,7 +174,7 @@ namespace LearningNN.Learning
             for (int i = 0; i < vSetStart; i++)
             {
                 Pattern p = dataSet.GetPatternAt(i);
-                mse += MSECalculator.CalculateRawAverageMSE(p.IdealOutput - network.ComputeOutput(p.Input));
+                mse += MSECalculator.CalculateRawMSE(p.IdealOutput - network.ComputeOutput(p.Input));
             }
 
             return CalculateEpochMSE(mse, vSetStart);

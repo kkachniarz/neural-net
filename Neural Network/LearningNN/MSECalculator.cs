@@ -9,15 +9,15 @@ namespace LearningNN
 {
     public class MSECalculator
     {
-        public static double CalculateRawAverageMSE(Vector<double> error)
+        public static double CalculateRawMSE(Vector<double> error)
         {
             return (error.PointwiseMultiply(error)).Average();
         }
 
-        public static double CalculateEpochMSE(double rawAverageMSESum, double dataSetSize, double dataMinOutput, double dataMaxOutput)
+        public static double CalculateEpochMSE(double rawMSESum, double dataSetSize, double dataMinOutput, double dataMaxOutput)
         {
             double span = ((dataMaxOutput - dataMinOutput) * (dataMaxOutput - dataMinOutput));
-            return rawAverageMSESum / (span * dataSetSize);
+            return rawMSESum / (span * dataSetSize);
         }
     }
 }

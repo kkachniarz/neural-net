@@ -45,9 +45,9 @@ namespace UnitTests
             Vector<double> error1 = new DenseVector(new double[] { 0.5, 0.0, 0.0 });
             Vector<double> error2 = new DenseVector(new double[] { -1.0, -1.0, 1.0 });
             Vector<double> error3 = new DenseVector(new double[] { 1.0, 1.0, 0.0 });
-            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
-            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
-            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+            double mse1 = MSECalculator.CalculateRawMSE(error1);
+            double mse2 = MSECalculator.CalculateRawMSE(error2);
+            double mse3 = MSECalculator.CalculateRawMSE(error3);
 
             double rawMSESum = mse1 + mse2 + mse3;
             double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, Unipolar.MinValue, Unipolar.MaxValue);
@@ -60,9 +60,9 @@ namespace UnitTests
             Vector<double> error1 = new DenseVector(new double[] { 2.0, 2.0, 2.0 });
             Vector<double> error2 = new DenseVector(new double[] { -2.0, -2.0, 2.0 });
             Vector<double> error3 = new DenseVector(new double[] { 2.0, -2.0, 2.0 });
-            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
-            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
-            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+            double mse1 = MSECalculator.CalculateRawMSE(error1);
+            double mse2 = MSECalculator.CalculateRawMSE(error2);
+            double mse3 = MSECalculator.CalculateRawMSE(error3);
 
             double rawMSESum = mse1 + mse2 + mse3;
             double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, Bipolar.MinValue, Bipolar.MaxValue);
@@ -75,9 +75,9 @@ namespace UnitTests
             Vector<double> error1 = new DenseVector(new double[] { 1.0, 1.0, 1.0 });
             Vector<double> error2 = new DenseVector(new double[] { -1.0, -1.0, 1.0 });
             Vector<double> error3 = new DenseVector(new double[] { 1.0, -1.0, 1.0 });
-            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
-            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
-            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+            double mse1 = MSECalculator.CalculateRawMSE(error1);
+            double mse2 = MSECalculator.CalculateRawMSE(error2);
+            double mse3 = MSECalculator.CalculateRawMSE(error3);
 
             double rawMSESum = mse1 + mse2 + mse3;
             double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, Unipolar.MinValue, Unipolar.MaxValue);
@@ -90,9 +90,9 @@ namespace UnitTests
             Vector<double> error1 = new DenseVector(new double[] { 0.6, 0.6, 0.6 });
             Vector<double> error2 = new DenseVector(new double[] { -0.6, -0.6, 0.6 });
             Vector<double> error3 = new DenseVector(new double[] { 0.6, -0.6, 0.6});
-            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
-            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
-            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+            double mse1 = MSECalculator.CalculateRawMSE(error1);
+            double mse2 = MSECalculator.CalculateRawMSE(error2);
+            double mse3 = MSECalculator.CalculateRawMSE(error3);
 
             double rawMSESum = mse1 + mse2 + mse3;
             double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, 0.2, 0.8);
@@ -112,9 +112,9 @@ namespace UnitTests
             Vector<double> error1 = new DenseVector(new double[] { 0.8, 0.6, 0.6 });
             Vector<double> error2 = new DenseVector(new double[] { -0.6, -0.75, 0.6 });
             Vector<double> error3 = new DenseVector(new double[] { 0.6, -0.6, 0.6 });
-            double mse1 = MSECalculator.CalculateRawAverageMSE(error1);
-            double mse2 = MSECalculator.CalculateRawAverageMSE(error2);
-            double mse3 = MSECalculator.CalculateRawAverageMSE(error3);
+            double mse1 = MSECalculator.CalculateRawMSE(error1);
+            double mse2 = MSECalculator.CalculateRawMSE(error2);
+            double mse3 = MSECalculator.CalculateRawMSE(error3);
 
             double rawMSESum = mse1 + mse2 + mse3;
             double epochMSE = MSECalculator.CalculateEpochMSE(rawMSESum, 3.0, 0.2, 0.8);
