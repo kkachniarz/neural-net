@@ -24,11 +24,14 @@ namespace Shell.Plotting
             var errorAxis = new LogarithmicAxis();
             errorAxis.TickStyle = TickStyle.Outside;
             errorAxis.Position = AxisPosition.Left;
-            errorAxis.Minimum = 0;
             errorAxis.Maximum = trainingSetErrors.Max() * 1.1 * errorScale;
+            errorAxis.Minimum = 0;
             errorAxis.Title = string.Format("Error x {0}", errorScale.ToString("E0"));
+            errorAxis.StringFormat = "E0";
+            errorAxis.MajorGridlineStyle = LineStyle.Dot;
 
             plotModel.Axes.Add(errorAxis);
+
             var iterationAxis = new LinearAxis();
             iterationAxis.Position = AxisPosition.Bottom;
             iterationAxis.TickStyle = TickStyle.Outside;
