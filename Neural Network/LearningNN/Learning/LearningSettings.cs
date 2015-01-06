@@ -14,6 +14,13 @@ namespace LearningNN.Learning
     /// </summary>
     public class LearningSettings
     {
+        public static string LearningRateTitle { get { return "LR"; } }
+        public static string MomentumTitle { get { return "M"; } }        
+        public static string MaxIterationsTitle { get { return "MAXIT"; } }
+        public static string BadIterationsTitle { get {return "BADIT";} }
+        public static string ActivationFuncTitle { get { return "FUNC"; } }
+        public static string HLTitle { get { return "HL"; } }
+
         private Dictionary<string, Action<string>> requiredParamParsers;
         public int MaxIterations { get; set; }
         public int BadIterations { get; set; }
@@ -27,12 +34,12 @@ namespace LearningNN.Learning
 
         private static List<string> requiredTitles = new List<string>()
         {
-            "LR",
-            "M",
-            "MAXIT",
-            "BADIT", 
-            "FUNC",
-            "HL"
+            LearningRateTitle,
+            MomentumTitle,
+            MaxIterationsTitle,
+            BadIterationsTitle,
+            ActivationFuncTitle,
+            HLTitle,
         };
 
         public static List<string> RequiredTitles
@@ -54,12 +61,12 @@ namespace LearningNN.Learning
             Activation = null;
             requiredParamParsers = new Dictionary<string, Action<string>>()
             {
-                {"LR", ParseLearningRate},
-                {"M", ParseMomentum},
-                {"MAXIT", ParseMaxIterations},
-                {"BADIT", ParseBadIterations},
-                {"FUNC", ParseActivationFunc},
-                {"HL", ParseHiddenNeuronCounts},
+                {LearningRateTitle, ParseLearningRate},
+                {MomentumTitle, ParseMomentum},
+                {MaxIterationsTitle, ParseMaxIterations},
+                {BadIterationsTitle, ParseBadIterations},
+                {ActivationFuncTitle, ParseActivationFunc},
+                {HLTitle, ParseHiddenNeuronCounts},
             };
         }
 
@@ -130,7 +137,7 @@ Validation Set Size: {7}",
 
         private void ParseHiddenNeuronCounts(string str)
         {
-            string[] layersText = str.Split(new string[] { ",", " ", "-", "_", "." }, 
+            string[] layersText = str.Split(new string[] { "-", "_", "." }, 
                 StringSplitOptions.RemoveEmptyEntries);
             HiddenNeuronCounts = layersText.Select(s => int.Parse(s)).ToList();
         }

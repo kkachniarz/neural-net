@@ -85,14 +85,8 @@ namespace Shell
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine(); // data
-                int commentIndex = line.IndexOf("//");
-                if(commentIndex >= 0)
-                {
-                    line = line.Substring(0, commentIndex);
-                }
-
-                string[] values = line.Split(new string[]{",", ":", " "}, StringSplitOptions.RemoveEmptyEntries);
-                if(values.Length == 0)
+                string[] values = ParseParamsLine(line);
+                if(values == null)
                 {
                     continue;
                 }
@@ -102,6 +96,23 @@ namespace Shell
 
             reader.Close();
             return SettingsMixer.BuildSettings(splitLines);
+        }
+
+        public static string[] ParseParamsLine(string line)
+        {
+            int commentIndex = line.IndexOf("//");
+            if (commentIndex >= 0)
+            {
+                line = line.Substring(0, commentIndex);
+            }
+
+            string[] values = line.Split(new string[] { ",", ":", " " }, StringSplitOptions.RemoveEmptyEntries);
+            if (values.Length == 0)
+            {
+                return null;
+            }
+
+            return values;
         }
 
         public static void SaveTextFile(string path, string text)

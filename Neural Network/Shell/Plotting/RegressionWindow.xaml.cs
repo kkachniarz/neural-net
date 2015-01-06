@@ -24,11 +24,11 @@ namespace Shell.Plotting
     /// </summary>
     public partial class RegressionWindow : Window
     {
-        public RegressionWindow(PlotModel plotModel, LearningResult learningResult)
+        public RegressionWindow(PlotModel plotModel, LearningResult learningResult, string identifier)
         {
             InitializeComponent();
             RegressionPlot.Model = plotModel;
-            this.Title = string.Format("TS Dir misguess: {0} TS Err: {1}", 
+            this.Title = string.Format("{0}: TS Dir {1} TS Err {2}",  identifier,
                 learningResult.DirectionMisguessRate.ToString("E2"), learningResult.TestSetError.ToString("E2"));
         }
     }

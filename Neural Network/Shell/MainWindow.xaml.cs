@@ -42,7 +42,7 @@ namespace Shell
         private const double DISCARD_FACTOR = 0.2;
         private const int DISPLAY_LIMIT = 10;
 
-        private int runsPerSettings = 1;  
+        private int runsPerSettings = 1;
         private bool plotAgainstInput = false;
 
         List<DenseVector> csvLines;
@@ -59,11 +59,11 @@ namespace Shell
         EngineInitData eid;
         BackgroundWorker worker;
 
-        private string dataSetPath;        
+        private string dataSetPath;
         private string resultsDirectoryPath;
         private string innerResultsPath;
         private string paramsFileName = null;
-        private string paramsFileText;
+        private string paramsInputText;
 
         public MainWindow()
         {
@@ -84,7 +84,7 @@ namespace Shell
             csvDlg.DefaultExt = ".txt";
             csvDlg.Filter = "TXT documents (.txt)|*.txt";
             csvDlg.Title = "Select a .txt file containing network parameters";
-            
+
             string paramsFilePath = ReadFile(out shortName, csvDlg);
             paramsFileName = shortName;
 
@@ -92,7 +92,7 @@ namespace Shell
                 return;
 
             settingsToRun = FileManager.RetrieveParameters(paramsFilePath);
-            paramsFileText = FileManager.ReadTextFile(paramsFilePath);
+            paramsInputText = FileManager.ReadTextFile(paramsFilePath);
             LoadParametersLabel.Content = string.Format("{0} ({1})", shortName, settingsToRun.Count);
             ToggleAutomationRelatedSettings(false);
         }
@@ -106,7 +106,7 @@ namespace Shell
         {
             settingsToRun = new List<LearningSettings>(); // to create a new reference (safe for background worker)
             paramsFileName = null;
-            paramsFileText = "";
+            paramsInputText = "";
             ToggleAutomationRelatedSettings(true);
             LoadParametersLabel.Content = "...";
         }
@@ -163,7 +163,7 @@ namespace Shell
             ToggleAutomationRelatedSettings(true); // user can prepare params for the next run
 
             runsPerSettings = int.Parse(RunsTextBox.Text);
-          
+
             bool bias = (YesNo)BiasCombobox.SelectedItem == YesNo.Yes;
 
             int pcaDimensions = 0;
@@ -178,7 +178,7 @@ namespace Shell
 
             if (settingsToRun.Count == 0)
             {
-                settingsToRun.Add(GetLearningSettingsFromUI());
+                settingsToRun = GetLearningSettingsFromUI();
             }
 
             if (problemType == PartIIProblemType.CTS)
@@ -194,7 +194,7 @@ namespace Shell
 
             eid.CtsPrevValuesCount = 1; // always 1
             eid.OutputCount = outputCount;
-            eid.InputCount = problemType == PartIIProblemType.CTS? 1 : csvLines[0].Count - outputCount;
+            eid.InputCount = problemType == PartIIProblemType.CTS ? 1 : csvLines[0].Count - outputCount;
             if (pcaDimensions > 0)
             {
                 eid.InputCount = Math.Min(pcaDimensions, eid.InputCount);
@@ -253,7 +253,7 @@ namespace Shell
         private void CleanUpAfterWorkerCompleted()
         {
             ToggleSensitiveGUIParts(true);
-            if(paramsFileName == null) // if params from file weren't used
+            if (paramsFileName == null) // if params from file weren't used
             {
                 settingsToRun.Clear();
             }
@@ -303,20 +303,21 @@ namespace Shell
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat(@"Data set: {0}
-Params file: 
-{1}
-Date {2}, {3}
-Runs per settings: {4}, discarding {5} = {6} worst runs per each settings\r\n",
-                System.IO.Path.GetFileName(eid.DataSetName), paramsFileText,
+Params text (file name: {1}): 
+{2}
+Date {3}, {4}
+Runs per settings: {5}, discarding {6} = {7} worst runs per each settings\r\n",
+                System.IO.Path.GetFileName(eid.DataSetName), paramsFileName ?? "",
+                paramsInputText,
                 DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(),
                 eid.RunsPerSettings, eid.DiscardWorstFactor.ToString("P1"), engineResult.WorstDiscardedCount);
 
-                sb.AppendFormat(@"Network type: {0}, inputs: {1}, outputs: {2}
+            sb.AppendFormat(@"Network type: {0}, inputs: {1}, outputs: {2}
 Outputs normalized within {3} - {4} of activation range.
 Total time taken: {5}s.",
-                eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount,
-                Normalizor.MARGIN_FACTOR.ToString("P1"), (1.0-Normalizor.MARGIN_FACTOR).ToString("P1"),
-                sortedAverages.Sum(a => a.AverageSecondsTaken * a.RunCount).ToString("F1"));
+            eid.NetworkType.ToString(), eid.InputCount, eid.OutputCount,
+            Normalizor.MARGIN_FACTOR.ToString("P1"), (1.0 - Normalizor.MARGIN_FACTOR).ToString("P1"),
+            sortedAverages.Sum(a => a.AverageSecondsTaken * a.RunCount).ToString("F1"));
             sb.AppendLine();
             sb.AppendLine("-------------------------------------------------------------------");
             sb.AppendLine();
@@ -363,32 +364,42 @@ Total time taken: {5}s.",
             return options;
         }
 
-        private LearningSettings GetLearningSettingsFromUI()
+        private List<LearningSettings> GetLearningSettingsFromUI()
         {
             LearningSettings lSettings = new LearningSettings();
-            lSettings.MaxIterations = int.Parse(MaxIterations.Text, CultureInfo.InvariantCulture);
-            lSettings.BadIterations = BadIterations.Text == "" ? lSettings.MaxIterations : int.Parse(BadIterations.Text, CultureInfo.InvariantCulture);
-            lSettings.LearningRate = double.Parse(LearningRate.Text, CultureInfo.InvariantCulture);
-            lSettings.Momentum = double.Parse(Momentum.Text, CultureInfo.InvariantCulture);
-            lSettings.ValidationSetSize = 0.2f;
-            lSettings.Activation = ((ActivationType)ActivationCombobox.SelectedItem == ActivationType.Bipolar) ?
-                (IActivation)new BipolarTanhActivation() : new UnipolarSigmoidActivation();
-            lSettings.SetParamByTitle("HL", LayersTextBox.Text);
+            string[] maxIters = GetSimulatedParamsTexts(LearningSettings.MaxIterationsTitle, MaxIterations.Text);
+            string[] badIters = GetSimulatedParamsTexts(LearningSettings.BadIterationsTitle, 
+                BadIterations.Text == ""? (int.MaxValue / 5).ToString() : BadIterations.Text);
+            string[] lr = GetSimulatedParamsTexts(LearningSettings.LearningRateTitle, LearningRate.Text);
+            string[] mnt = GetSimulatedParamsTexts(LearningSettings.MomentumTitle, Momentum.Text);
+            ActivationType aType = (ActivationType)ActivationCombobox.SelectedItem;
+            string aTypeText = "";
+            if(aType == ActivationType.Unipolar) { aTypeText = "U"; }
+            else if(aType == ActivationType.Bipolar) { aTypeText = "B"; }
+            else { throw new Exception("Unrecognized activation type"); };
 
-            return lSettings;
+            string[] act = GetSimulatedParamsTexts(LearningSettings.ActivationFuncTitle, aTypeText);
+            string[] hls = GetSimulatedParamsTexts(LearningSettings.HLTitle, LayersTextBox.Text);
+
+            List<string[]> simulatedSplitLines = new List<string[]>()
+                {
+                    maxIters, badIters, lr, mnt, act, hls
+                };
+
+            StringBuilder inputText = new StringBuilder();
+            simulatedSplitLines.ForEach(l => inputText.AppendLine(string.Join(",", l)));
+            paramsInputText = inputText.ToString();
+            return SettingsMixer.BuildSettings(simulatedSplitLines);
+        }
+
+        private string[] GetSimulatedParamsTexts(string title, string fieldText)
+        {
+            return FileManager.ParseParamsLine(string.Format("{0}: {1}", title, fieldText));
         }
 
         public void UpdateStatus(string text)
         {
             this.Title = text;
-        }
-
-        private void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult)
-        {
-            Window errorWindow = new NetworkErrorWindow(errorPlot);
-            errorWindow.Show();
-            Window regressionWindow = new RegressionWindow(regressionPlot, learningResult);
-            regressionWindow.Show();
         }
 
         /// <summary>
@@ -467,13 +478,22 @@ Total time taken: {5}s.",
 
             if (eid.ReportingOptions.ShouldDisplayPlots)
             {
-                DisplayResults(regressionPlot, errorPlot, result.LearningResult);
+                DisplayResults(regressionPlot, errorPlot, result.LearningResult, result.Name);
             }
         }
 
+        private void DisplayResults(PlotModel regressionPlot, PlotModel errorPlot, LearningResult learningResult, string identifier)
+        {
+            Window errorWindow = new NetworkErrorWindow(errorPlot, identifier);
+            errorWindow.Show();
+            Window regressionWindow = new RegressionWindow(regressionPlot, learningResult, identifier);
+            regressionWindow.Show();
+        }
+
+
         private void CreateResultDirectories(DateTime time)
         {
-            string dirName = settingsToRun.Count + "x" + runsPerSettings.ToString() + "_" + 
+            string dirName = settingsToRun.Count + "x" + runsPerSettings.ToString() + "_" +
                 time.ToLongDateString() + "_" + time.ToLongTimeString().Replace(":", "-");
             resultsDirectoryPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), dirName);
             Directory.CreateDirectory(resultsDirectoryPath);

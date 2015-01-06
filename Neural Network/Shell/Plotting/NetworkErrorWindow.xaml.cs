@@ -27,10 +27,11 @@ namespace Neural_Network.Plotting
         private const double SCALE = 1000.0;
         private PlotModel plotModel;
 
-        public NetworkErrorWindow(PlotModel plotModel)
+        public NetworkErrorWindow(PlotModel plotModel, string identifier)
         {
             InitializeComponent();
             ErrorPlot.Model = plotModel;
+            Title = string.Format("{0}", identifier);
         }
     }
 }
