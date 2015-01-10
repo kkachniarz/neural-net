@@ -15,8 +15,8 @@ namespace RecursiveNN
         private const double DEFAULT_RND_RANGE = 0.5;
         public IActivation Activation { get; private set; }
         public Type NetworkType { get; private set; }
-        public bool IsInitialized { get { return true; } }
-
+        public bool IsInitialized { get; private set; }
+        
         private InputLayer inputLayer;
         private WeightedLayer hiddenLayer;
         private WeightedLayer outputLayer;
@@ -24,6 +24,7 @@ namespace RecursiveNN
 
         public RecursiveNetwork(Type type, IActivation activation, bool useBiases, int inputNeurons, int hiddenNeurons, int outputNeurons)
         {
+            IsInitialized = false;
             Activation = activation;
             NetworkType = type;
 
@@ -61,6 +62,7 @@ namespace RecursiveNN
         {
             hiddenLayer.RandomizeWeights();
             outputLayer.RandomizeWeights();
+            IsInitialized = true;
         }
 
         public void CalculateAndPropagateError(Vector<double> modelAnswer)
