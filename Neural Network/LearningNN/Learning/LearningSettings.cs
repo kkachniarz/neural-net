@@ -127,9 +127,9 @@ Validation Set Size: {7}",
         private void ParseMomentum(string str)
         {
             Momentum = double.Parse(str, CultureInfo.InvariantCulture);
-            if(Momentum < 0 || Momentum >= 1)
+            if(Momentum < 0)
             {
-                throw new ArgumentException("Momentum must be within [0, 1)");
+                throw new ArgumentException("Momentum must be within [0, +Inf)");
             }
         }
 
