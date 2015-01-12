@@ -96,10 +96,10 @@
         <ComboBox Name="ActivationCombobox" Grid.Row="4" Grid.Column="1"/>
 
         <Label Grid.Row="5" Grid.Column="0" Content="Max epochs:" />
-        <TextBox Name="MaxIterations" Grid.Row="5" Grid.Column="1" Text="1000"/>
+        <TextBox Name="MaxIterations" Grid.Row="5" Grid.Column="1" Text="5000"/>
 
         <Label Grid.Row="6" Grid.Column="0" Content="Bad epochs:" />
-        <TextBox Name="BadIterations" Grid.Row="6" Grid.Column="1" Text="5"/>
+        <TextBox Name="BadIterations" Grid.Row="6" Grid.Column="1" Text="30"/>
 
         <Label Grid.Row="7" Grid.Column="0" Content="Learning rate:" />
         <TextBox Name="LearningRate" Grid.Row="7" Grid.Column="1" Text="0.4"/>
