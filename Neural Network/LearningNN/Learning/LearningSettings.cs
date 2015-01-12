@@ -52,7 +52,7 @@ namespace LearningNN.Learning
 
         public LearningSettings()
         {
-            ValidationSetSize = 0.2f;
+            ValidationSetSize = 0.125f;
             MaxIterations = 2000;
             MinIterations = 50;
             BadIterations = 10;
