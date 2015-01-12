@@ -36,13 +36,18 @@ namespace UnitTests
 
         private void TestSaveInternal(INetwork nn)
         {
+            Random r = new Random();
             nn.Initialize(CreationModes.RandomizeWeights);
 
-            Vector<double> v = new DenseVector(new double[] { 2.0 });   
+            Vector<double> v = new DenseVector(new double[] { 1.0 });
+            for(int i = 0; i < 10; i++)
+            {
+                nn.ComputeOutput(new DenseVector(new double[] {r.NextDouble()})); // for recursive (simulate that V-set has been run)
+            }
 
-            object save = nn.SaveWeights();
             Vector<double> original = nn.ComputeOutput(v);
-
+            object save = nn.SaveWeights(); // save "after V-set"
+            
             nn.Initialize(CreationModes.RandomizeWeights);
             Vector<double> after = nn.ComputeOutput(v);
 
