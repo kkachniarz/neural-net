@@ -29,9 +29,9 @@ namespace LearningNN.DataSet
         {
         }
 
-        private void AddPatterns(IList<DenseVector> chaoticSeries, int startIndex)
+        private void AddPatterns(IList<DenseVector> chaoticSeries, int firstIndex)
         {
-            for (int i = startIndex; i < chaoticSeries.Count; i++)
+            for (int i = firstIndex; i < chaoticSeries.Count; i++)
             {
                 Pattern adding = new Pattern(startTime + i);
                 DenseVector input = new DenseVector(historyLength);

@@ -73,7 +73,7 @@ namespace LearningNN.Learning
                 finished = true;
                 // restore the best weights
                 network.RestoreWeights(savedWeights);
-                return CalculateMSEValidation();
+                return lowestError; // was CalculateMSEValidation() // last error if calculated now would be off (overestimated) due to context layer saving - ideally it should be saved just after train set...
             }
 
             previousError = currentError;

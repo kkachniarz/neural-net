@@ -136,7 +136,6 @@ namespace Shell
             List<DenseVector> chaoticValues = eid.CsvLines; // no need for further parsing
 
             List<DenseVector> trainValues = chaoticValues.ExtractList(0, trainSetEndIndex);
-            List<DenseVector> testValues = chaoticValues.ExtractList(trainSetEndIndex, chaoticValues.Count);
 
             trainSet = new ChaoticDataSet(trainValues, historyLength, 0);
             if (trainSetEndIndex >= chaoticValues.Count - 1)
@@ -145,6 +144,7 @@ namespace Shell
             }
             else
             {
+                List<DenseVector> testValues = chaoticValues.ExtractList(trainSetEndIndex - 1, chaoticValues.Count);
                 testSet = new ChaoticDataSet(testValues, historyLength, trainSetEndIndex);
             }
         }
