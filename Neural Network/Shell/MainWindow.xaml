@@ -134,13 +134,13 @@
                     </ToolTip>
                 </Button.ToolTip>
             </Button>
-        <Button Content="X" Width="30" Name="UnloadParamsBtn" Click="HandleUnloadParametersClick" Margin="0,0,5,0"/>
-            
+            <Button Content="X" Width="30" Name="UnloadParamsBtn" Click="HandleUnloadParametersClick" Margin="0,0,5,0"/>
+
         </StackPanel>
         <Label Name="LoadParametersLabel" Grid.Row="13" Grid.Column="1" 
                Content="..."/>
 
-        <StackPanel Grid.Row="15" Grid.Column="0" Name="CheckboxStackPanel" Orientation="Vertical">
+        <StackPanel Grid.Row="15" Grid.Column="0" Name="CheckboxStackPanel" Orientation="Vertical" >
             <CheckBox Name="ShowPlotsCheckbox" Content="Display plots"
                 Width="100" FontWeight="Bold" IsChecked="False"/>
             <CheckBox Name="SavePlotsCheckbox" Content="Save plots"
@@ -149,11 +149,17 @@
                 Width="100" FontWeight="Bold" IsChecked="True"/>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="15" Grid.Column="1">
-            <Label Content="Runs:" Margin="0,0,0,0"/>
-            <TextBox Name="RunsTextBox" Width="40px" MaxLength="3" Text="1" Margin="0,0,0,0"/>            
-            <Button  Name="StartButton" Click="StartButtonClick" Content="START"
-                Width="100" FontWeight="Bold" IsEnabled="False"/>
+        <StackPanel Orientation="Vertical" Grid.Row="15" Grid.Column="1">
+            <StackPanel Orientation="Horizontal" >
+                <Label Content="Runs:" Margin="0,0,0,0"/>
+                <TextBox Name="RunsTextBox" Width="40px" MaxLength="3" Text="1" Margin="0,0,0,0"/>
+                <Button  Name="StartButton" Click="StartButtonClick" Content="START"
+                Width="100" FontWeight="Bold" IsEnabled="False"/> 
+            </StackPanel>
+            <TextBlock HorizontalAlignment="Center">
+                <Hyperlink NavigateUri="" Name="ResultsLink"
+                           RequestNavigate="Hyperlink_RequestNavigate" IsEnabled="False">Open results folder</Hyperlink>
+            </TextBlock>
         </StackPanel>
     </Grid>
 </Window>

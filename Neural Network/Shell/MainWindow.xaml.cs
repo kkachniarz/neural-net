@@ -13,6 +13,7 @@ using Shell.Plotting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -148,6 +149,7 @@ namespace Shell
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
             ToggleSensitiveGUIParts(false);
+            SetResultsLink(false, null);
             ToggleAutomationRelatedSettings(true); // user can prepare params for the next run
 
             runsPerSettings = int.Parse(RunsTextBox.Text);
@@ -250,12 +252,19 @@ namespace Shell
         private void CleanUpAfterWorkerCompleted()
         {
             ToggleSensitiveGUIParts(true);
+            SetResultsLink(true, new Uri(resultsDirectoryPath));
             if (paramsFileName == null) // if params from file weren't used
             {
                 settingsToRun.Clear();
             }
 
             eid = null;
+        }
+
+        private void SetResultsLink(bool on, System.Uri resultsUri)
+        {
+            ResultsLink.NavigateUri = resultsUri;
+            ResultsLink.IsEnabled = on;
         }
 
         void worker_DoWork(object sender, DoWorkEventArgs e)
@@ -512,6 +521,12 @@ Total time taken: {5}s.",
             }
 
             FileManager.AppendDataToCSV(path, output);
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+            e.Handled = true;
         }
     }
 }
