@@ -1,5 +1,6 @@
 ﻿using LearningNN.DataSet;
 using MathNet.Numerics.LinearAlgebra;
+using RecursiveNN;
 using SharpNN;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ namespace LearningNN.Learning
 {
     public class VSetLearningStrategy : LearningStrategy
     {
+        const int RNET_WARMUP_LENGTH = 5;
         public int IterLimit { get; set; }
         public int MaxBadIterations { get; set; }
         public int MinIterations { get; set; }
@@ -27,6 +29,8 @@ namespace LearningNN.Learning
 
         private double minValidOutput; // this is network min activation + margin value, that is, the minimum value that could represent an output in the data.
         private double maxValidOutput;
+
+        private bool isRecursiveNet;
 
         private object savedWeights = null;
 
@@ -45,6 +49,7 @@ namespace LearningNN.Learning
             vSetStart = (int)((1 - vSetPercentage) * data.PatternCount);
             Normalizor.GetMinMaxActivationWithMargin(network.Activation.MinValue, network.Activation.MaxValue,
                 out minValidOutput, out maxValidOutput);
+            isRecursiveNet = network is RecursiveNetwork;
             return base.Train(network, data, statusHolder);
         }
 
@@ -94,9 +99,11 @@ namespace LearningNN.Learning
                 Pattern pattern = dataSet.GetPatternAt(i);
                 Vector<double> networkAnswer = network.ComputeOutput(pattern.Input);
                 Vector<double> modelAnswer = pattern.IdealOutput;
-
-                network.CalculateAndPropagateError(modelAnswer);
-                network.ImproveWeights(LearningRate, Momentum);
+                if (!isRecursiveNet || i > RNET_WARMUP_LENGTH) // for recursive networks, we first want to "init" memory with reasonable values - not to propagate "fake" error (resulting from irrelevant memory)
+                {
+                    network.CalculateAndPropagateError(modelAnswer);
+                    network.ImproveWeights(LearningRate, Momentum);
+                }
             }
         }
 
