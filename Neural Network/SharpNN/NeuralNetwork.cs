@@ -10,9 +10,11 @@ using MathNet.Numerics.LinearAlgebra;
 using SharpNN.Layers;
 using SharpNN.ActivationFunctions;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace SharpNN
 {
+    [Serializable]
     public partial class NeuralNetwork : INetwork
     {
         private const double DEFAULT_RND_RANGE = 0.5;//0.05;
@@ -27,10 +29,8 @@ namespace SharpNN
         public int InputCount { get { return inputLayer.NeuronCount; } }
         public int OutputCount { get { return layers[layers.Count - 1].NeuronCount; } }
         public int HiddenLayerCount { get { return weightedLayers.Count - 1; } }
+
         public Vector<double> LastOutput { get { return lastOutput; } }
-        public double LearningRate { get; set; }
-        public double Momentum { get; set; }
-        public int Iterations { get; set; }
         public IActivation Activation { get; private set; }
 
         [Obsolete("Obsolete due to activation function constrains - same for all layers")]
@@ -287,7 +287,7 @@ namespace SharpNN
             }
         }
 
-        private class SavedWeights
+        public class SavedWeights
         {
             public Matrix<double>[] WeightMatrices;
             public Vector<double>[] Biases;

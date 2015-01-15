@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SharpNN.ActivationFunctions
 {
+    [Serializable]
     public class UnipolarSigmoidActivation : IActivation
     {
         public double MaxValue { get { return 1; } }

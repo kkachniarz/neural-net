@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace RecursiveNN
 {
+    [Serializable]
     public class RecursiveNetwork : INetwork
     {
         private const double DEFAULT_RND_RANGE = 0.5;
@@ -88,6 +89,7 @@ namespace RecursiveNN
  	        return new DenseVector(x.Concat(y).ToArray());
         }
 
+        [Serializable]
         public enum Type
         {
             Jordan,

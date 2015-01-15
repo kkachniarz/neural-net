@@ -1,6 +1,8 @@
 ﻿
+using System;
 namespace SharpNN.ActivationFunctions
 {
+    [Serializable]
     public class LinearActivation : IActivation
     {
         public double MaxValue { get { return double.MaxValue; } }

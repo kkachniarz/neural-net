@@ -13,6 +13,7 @@ namespace SharpNN.Layers
     /// <summary>
     /// Represents a neural network layer.
     /// </summary>
+    [Serializable]
     public abstract class Layer
     {
         public Vector<double> LastOutput { get; protected set; }

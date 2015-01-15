@@ -11,5 +11,6 @@ namespace Shell.Containers
         public bool ShouldDisplayPlots { get; set; }
         public bool ShouldSavePlots { get; set; }
         public bool ShouldSaveRunInfos { get; set; }
+        public bool ShouldSerialize { get; set; }
     }
 }

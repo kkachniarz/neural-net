@@ -11,6 +11,7 @@ namespace SharpNN.Layers
     /// <summary>
     /// Represents a fully-connected layer with weighted input. 
     /// </summary>
+    [Serializable]
     public class WeightedLayer : Layer
     {
         private Vector<double> LastBiasWeightsModification { get; set; }

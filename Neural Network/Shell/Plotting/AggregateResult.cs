@@ -20,39 +20,38 @@ namespace Shell.Plotting
         public double AverageSecondsTaken { get; private set; }
         public double PercentageLearningStuck { get; private set; }
         public int RunCount { get; private set; }       
-        public int BestErrorIndex { get; private set; }     
+        public int BestErrorIndex { get; private set; }
+        public SingleRunReport BestReport { get { return Reports[0]; } }
 
         private Vector<double> Errors;
         private Vector<double> DirectionMisguessRates;
         private Vector<double> Iterations;
         private List<SingleRunReport> Reports;
 
-        private LearningSettings SettingsUsed;
-        private INetwork Network;        
+        private LearningSettings SettingsUsed;      
 
-        public AggregateResult(List<SingleRunReport> reports, LearningSettings settings)
+        public AggregateResult(List<SingleRunReport> sortedReports, LearningSettings settings)
         {
-            Errors = new DenseVector(reports.Count);
-            DirectionMisguessRates = new DenseVector(reports.Count);
-            Iterations = new DenseVector(reports.Count);
-            List<TimeSpan> timesTaken = new List<TimeSpan>(reports.Count);
+            Errors = new DenseVector(sortedReports.Count);
+            DirectionMisguessRates = new DenseVector(sortedReports.Count);
+            Iterations = new DenseVector(sortedReports.Count);
+            List<TimeSpan> timesTaken = new List<TimeSpan>(sortedReports.Count);
 
-            for (int i = 0; i < reports.Count; i++)
+            for (int i = 0; i < sortedReports.Count; i++)
             {
-                Errors[i] = reports[i].LearningResult.TestSetError;
-                DirectionMisguessRates[i] = reports[i].LearningResult.DirectionMisguessRate;
-                Iterations[i] = reports[i].LearningResult.IterationsExecuted;
-                timesTaken.Add(reports[i].LearningResult.TimeTaken);
+                Errors[i] = sortedReports[i].LearningResult.TestSetError;
+                DirectionMisguessRates[i] = sortedReports[i].LearningResult.DirectionMisguessRate;
+                Iterations[i] = sortedReports[i].LearningResult.IterationsExecuted;
+                timesTaken.Add(sortedReports[i].LearningResult.TimeTaken);
             }
 
-            RunCount = reports.Count;
+            RunCount = sortedReports.Count;
             SettingsUsed = settings;
-            Network = reports[0].Network;
             AverageError = Errors.Average();
             AverageSecondsTaken = timesTaken.Average(x => x.TotalSeconds);
-            Reports = reports.ToList(); // create copies of references
+            Reports = sortedReports.ToList(); // create copies of references
             BestErrorIndex = Errors.MinimumIndex();
-            PercentageLearningStuck = (double)reports.Count(x => x.LearningResult.GotStuck) / (double)reports.Count;
+            PercentageLearningStuck = (double)sortedReports.Count(x => x.LearningResult.GotStuck) / (double)sortedReports.Count;
         }
 
         public override string ToString()
