@@ -17,6 +17,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows;
 using System.Windows.Documents;
@@ -292,8 +294,32 @@ namespace Shell
             }
 
             aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
+            SafeSerializeNetworkToFile(aggregates[0].BestReport.Network, string.Format("{0}_{1}", eid.NetworkType,
+                aggregates[0].BestReport.LearningResult.TestSetError.ToString("E2")));
             SaveBatchReport(aggregates);
             ReactToResultsSaved();
+        }
+
+        private void SafeSerializeNetworkToFile(object net, string networkID)
+        {
+            if (!eid.ReportingOptions.ShouldSerialize)
+            {
+                return;
+            }
+
+            try
+            {
+                string path = Path.Combine(resultsDirectoryPath, string.Format("{0}.bin", networkID));
+                IFormatter formatter = new BinaryFormatter();
+                using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    formatter.Serialize(stream, net);
+                }
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show("Error serializing network " + e.ToString());
+            }
         }
 
         private void ReactToResultsSaved()
@@ -368,6 +394,7 @@ Total time taken: {5}s.",
             options.ShouldDisplayPlots = ShowPlotsCheckbox.IsChecked.Value;
             options.ShouldSavePlots = SavePlotsCheckbox.IsChecked.Value;
             options.ShouldSaveRunInfos = SaveRunInfosCheckbox.IsChecked.Value;
+            options.ShouldSerialize = SerializeCheckbox.IsChecked.Value;
             return options;
         }
 

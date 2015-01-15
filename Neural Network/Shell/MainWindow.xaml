@@ -140,13 +140,16 @@
         <Label Name="LoadParametersLabel" Grid.Row="13" Grid.Column="1" 
                Content="..."/>
 
-        <StackPanel Grid.Row="15" Grid.Column="0" Name="CheckboxStackPanel" Orientation="Vertical" >
+        <StackPanel Grid.Row="15" Grid.Column="0" Name="CheckboxStackPanel" 
+                    Orientation="Vertical" HorizontalAlignment="Center">
             <CheckBox Name="ShowPlotsCheckbox" Content="Display plots"
-                Width="100" FontWeight="Bold" IsChecked="False"/>
+                FontWeight="Bold" IsChecked="False"/>
             <CheckBox Name="SavePlotsCheckbox" Content="Save plots"
-                Width="100" FontWeight="Bold" IsChecked="False"/>
+                FontWeight="Bold" IsChecked="False"/>
             <CheckBox Name="SaveRunInfosCheckbox" Content="Save run infos"
-                Width="100" FontWeight="Bold" IsChecked="True"/>
+                FontWeight="Bold" IsChecked="True"/>
+            <CheckBox Name="SerializeCheckbox" Content="Serialize best net"
+                FontWeight="Bold" IsChecked="True"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Grid.Row="15" Grid.Column="1">

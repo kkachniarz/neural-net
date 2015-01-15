@@ -9,6 +9,7 @@ using System.Text;
 
 namespace RecursiveNN
 {
+    [Serializable]
     public class ContextLayer : Layer
     {
         public Vector<double> Memory;

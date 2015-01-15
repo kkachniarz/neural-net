@@ -13,6 +13,7 @@ namespace SharpNN.Layers
     /// Represents an input layer where each neuron takes a single value as input. 
     /// There are no incoming weights.
     /// </summary>
+    [Serializable]
     public class InputLayer : Layer
     {
         public InputLayer(int neuronCount) : base(neuronCount, new LinearActivation())
