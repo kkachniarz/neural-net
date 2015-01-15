@@ -25,7 +25,8 @@ namespace Shell.Plotting
             errorAxis.TickStyle = TickStyle.Outside;
             errorAxis.Position = AxisPosition.Left;
             errorAxis.Maximum = validationSetErrors.Max() * 1.1 * errorScale;
-            errorAxis.Minimum = 0;
+            double errMin = validationSetErrors.Min() * errorScale;
+            errorAxis.Minimum = Math.Min(1.0, errMin);
             errorAxis.Title = string.Format("Error x {0}", errorScale.ToString("E0"));
             errorAxis.StringFormat = "E0";
             errorAxis.MajorGridlineStyle = LineStyle.Dot;
