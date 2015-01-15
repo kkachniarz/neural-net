@@ -42,11 +42,11 @@ namespace UnitTests
             Vector<double> v = new DenseVector(new double[] { 1.0 });
             for(int i = 0; i < 10; i++)
             {
-                nn.ComputeOutput(new DenseVector(new double[] {r.NextDouble()})); // for recursive (simulate that V-set has been run)
+                nn.ComputeOutput(new DenseVector(new double[] {r.NextDouble()}));
             }
 
-            Vector<double> original = nn.ComputeOutput(v);
-            object save = nn.SaveWeights(); // save "after V-set"
+            object save = nn.SaveWeights(); // to make it easy for recurrent nets (memory would change after computation - save would be imperfect)
+            Vector<double> original = nn.ComputeOutput(v);            
             
             nn.Initialize(CreationModes.RandomizeWeights);
             Vector<double> after = nn.ComputeOutput(v);

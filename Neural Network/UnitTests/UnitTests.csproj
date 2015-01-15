@@ -85,6 +85,7 @@
     <Compile Include="DirectionErrorTests.cs" />
     <Compile Include="StandardDeviationExtensionTests.cs" />
     <Compile Include="ListExtensionsTests.cs" />
+    <Compile Include="SerializationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LearningNN\LearningNN.csproj">
