@@ -51,6 +51,7 @@ namespace Shell
         BackgroundWorker worker;
 
         private string dataSetPath;
+        private string dataSetShortName;
         private string resultsDirectoryPath;
         private string innerResultsPath;
         private string paramsFileName = null;
@@ -114,18 +115,17 @@ namespace Shell
 
         private void ReadDataSet(object sender, RoutedEventArgs e)
         {
-            string shortName;
             OpenFileDialog csvDlg = new OpenFileDialog();
             csvDlg.DefaultExt = ".csv";
             csvDlg.Filter = "CSV documents (.csv)|*.csv";
             csvDlg.Title = "Select proper CSV file";
-            dataSetPath = ReadFile(out shortName, csvDlg);
+            dataSetPath = ReadFile(out dataSetShortName, csvDlg);
 
             if (dataSetPath == null)
                 return;
 
             csvLines = FileManager.ReadDataFromCSV(dataSetPath);
-            TrainSetLabel.Content = shortName;
+            TrainSetLabel.Content = dataSetShortName;
 
             if (IsReady)
             {
@@ -294,7 +294,8 @@ namespace Shell
             }
 
             aggregates.Sort((a, b) => Math.Sign(a.AverageError - b.AverageError));
-            SafeSerializeNetworkToFile(aggregates[0].BestReport.Network, string.Format("{0}_{1}", eid.NetworkType,
+            SafeSerializeNetworkToFile(aggregates[0].BestReport.Network, string.Format("{0}_{1}_{2}", eid.NetworkType,
+                Path.GetFileNameWithoutExtension(dataSetShortName), 
                 aggregates[0].BestReport.LearningResult.TestSetError.ToString("E2")));
             SaveBatchReport(aggregates);
             ReactToResultsSaved();
