@@ -19,5 +19,10 @@ namespace LearningNN
             double span = ((dataMaxOutput - dataMinOutput) * (dataMaxOutput - dataMinOutput));
             return rawMSESum / (span * dataSetSize);
         }
+
+        public static double CalculateEpochMSEDenormalized(double mseSum, double setSize)
+        {
+            return mseSum / setSize;
+        }
     }
 }

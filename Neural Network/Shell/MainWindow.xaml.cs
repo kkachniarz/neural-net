@@ -506,7 +506,8 @@ Total time taken: {5}s.",
         {
             RegressionPlotBuilder regressionBuilder = new RegressionPlotBuilder();
             PlotModel regressionPlot = regressionBuilder.Build1DRegressionModel(result.TrainSet, result.TestSet, eid.PlotAgainstInput);
-            ErrorPlotBuilder errorBuilder = new ErrorPlotBuilder(eid.ErrorScale);
+            //ErrorPlotBuilder errorBuilder = new ErrorPlotBuilder(eid.ErrorScale);
+            ErrorPlotBuilder errorBuilder = new ErrorPlotBuilder();
             PlotModel errorPlot = errorBuilder.SetUpModel(result.LearningResult.MSEHistory);
 
             SaveSingleRunData(settings, result, regressionPlot, errorPlot, result.Network);

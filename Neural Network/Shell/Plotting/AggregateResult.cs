@@ -25,6 +25,7 @@ namespace Shell.Plotting
 
         private Vector<double> Errors;
         private Vector<double> DirectionMisguessRates;
+        private Vector<double> MPVer2;
         private Vector<double> Iterations;
         private List<SingleRunReport> Reports;
 
@@ -34,6 +35,7 @@ namespace Shell.Plotting
         {
             Errors = new DenseVector(sortedReports.Count);
             DirectionMisguessRates = new DenseVector(sortedReports.Count);
+            MPVer2 = new DenseVector(sortedReports.Count);
             Iterations = new DenseVector(sortedReports.Count);
             List<TimeSpan> timesTaken = new List<TimeSpan>(sortedReports.Count);
 
@@ -41,6 +43,7 @@ namespace Shell.Plotting
             {
                 Errors[i] = sortedReports[i].LearningResult.TestSetError;
                 DirectionMisguessRates[i] = sortedReports[i].LearningResult.DirectionMisguessRate;
+                MPVer2[i] = sortedReports[i].LearningResult.DirectionGuessVer2;
                 Iterations[i] = sortedReports[i].LearningResult.IterationsExecuted;
                 timesTaken.Add(sortedReports[i].LearningResult.TimeTaken);
             }
@@ -62,6 +65,8 @@ namespace Shell.Plotting
             sb.AppendFormat("Test Set direction misguess rate: M = {0}   SD = {1}\r\n", 
                 DirectionMisguessRates.Average().ToString("E2"), 
                 DirectionMisguessRates.StandardDeviation().ToString("E2"));
+            sb.AppendFormat("MP ver. 2: M = {0}   SD = {1}\r\n",
+                MPVer2.Average().ToString("E2"), MPVer2.StandardDeviation().ToString("E2"));
             sb.AppendFormat("Iterations: M = {0}  SD = {1}\r\n", Iterations.Average().ToString("F1"),
                 Iterations.StandardDeviation().ToString("F1"));
             sb.AppendFormat("Time taken: M = {0}s.\r\n", AverageSecondsTaken.ToString("F1"));

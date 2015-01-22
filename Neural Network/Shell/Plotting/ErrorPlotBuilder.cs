@@ -11,11 +11,9 @@ namespace Shell.Plotting
 {
     public class ErrorPlotBuilder
     {
-        private readonly double errorScale;
 
-        public ErrorPlotBuilder(double errorScale)
+        public ErrorPlotBuilder()
         {
-            this.errorScale = errorScale;
         }
 
         public PlotModel SetUpModel(List<double> validationSetErrors, List<double> testSetErrors = null)
@@ -24,10 +22,9 @@ namespace Shell.Plotting
             var errorAxis = new LogarithmicAxis();
             errorAxis.TickStyle = TickStyle.Outside;
             errorAxis.Position = AxisPosition.Left;
-            errorAxis.Maximum = validationSetErrors.Max() * 1.1 * errorScale;
-            double errMin = validationSetErrors.Min() * errorScale;
-            errorAxis.Minimum = Math.Min(1.0, errMin);
-            errorAxis.Title = string.Format("Error x {0}", errorScale.ToString("E0"));
+            errorAxis.Maximum = validationSetErrors.Max() * 1.1;
+            double errMin = validationSetErrors.Min();
+            errorAxis.Minimum = errMin;
             errorAxis.StringFormat = "E0";
             errorAxis.MajorGridlineStyle = LineStyle.Dot;
 
@@ -60,7 +57,7 @@ namespace Shell.Plotting
             List<DataPoint> points = new List<DataPoint>();
             for (int i = 0; i < mseHistory.Count; i++)
             {
-                points.Add(new DataPoint(i, mseHistory[i] * errorScale));
+                points.Add(new DataPoint(i, mseHistory[i]));
             }
             return points;
         }

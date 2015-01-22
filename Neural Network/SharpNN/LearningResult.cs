@@ -12,6 +12,7 @@ namespace SharpNN
         public List<double> MSEHistory { get; set; }
         public double TestSetError { get; set; }
         public double DirectionGuessRate { get; set; }
+        public double DirectionGuessVer2 { get; set; }
         public bool GotStuck { get; set; }
         public TimeSpan TimeTaken { get; set; }
         public double DirectionMisguessRate
@@ -49,6 +50,7 @@ namespace SharpNN
             sb.AppendFormat("Error on validation set: {0}\r\n", FinalTrainError.ToString("E2"));
             sb.AppendFormat("Error on test set: {0}\r\n", TestSetError.ToString("E2"));
             sb.AppendFormat("Direction misguess: {0}\r\n", DirectionMisguessRate.ToString("E2"));
+            sb.AppendFormat("Direction ver2: {0}\r\n", DirectionGuessVer2.ToString("E2"));
             sb.AppendFormat("Time taken: {0}s.\r\n", TimeTaken.TotalSeconds.ToString("F1"));
             return sb.ToString();
         }

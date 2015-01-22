@@ -40,7 +40,8 @@ namespace LearningNN
             LearningResult learningResult = new LearningResult();
             learningResult.MSEHistory = learningStrategy.Train(network, trainSet, statusHolder);
             learningResult.TestSetError = AnswerTestSet();
-            learningResult.DirectionGuessRate = CalculateDirectionGuessed();
+            learningResult.DirectionGuessRate = CalculateDirectionGuessed(DirectionGuess.NetworkToNetwork);
+            learningResult.DirectionGuessVer2 = CalculateDirectionGuessed(DirectionGuess.IdealToNetwork);
             learningResult.TimeTaken = learningStrategy.TimeTaken;
             learningResult.GotStuck = learningStrategy.GotStuck;
             return learningResult;
@@ -56,16 +57,25 @@ namespace LearningNN
             double mseSum = 0.0;
             foreach (Pattern p in testSet.EnumeratePatterns())
             {
-                mseSum += MSECalculator.CalculateRawMSE(p.IdealOutput - p.NetworkAnswer);
-            }
+                double vectorMSE = 0.0;
+                for(int i = 0; i < testSet.Extremums.OutputExtremums.Count; i++)
+                {
+                    DataExtremum extr = testSet.Extremums.OutputExtremums[i];
+                    double denormAns = extr.Normalizor.NormalizeBack(p.NetworkAnswer[i]);
+                    double denormIdeal = extr.Normalizor.NormalizeBack(p.IdealOutput[i]);
+                    vectorMSE += (denormAns - denormIdeal) * (denormAns - denormIdeal);
+                }
 
-            double min;
-            double max;
-            Normalizor.GetMinMaxActivationWithMargin(network.Activation.MinValue, network.Activation.MaxValue, out min, out max);
-            return MSECalculator.CalculateEpochMSE(mseSum, testSet.PatternCount, min, max);
+                mseSum += vectorMSE / testSet.Extremums.OutputExtremums.Count;
+            }            
+
+//            double min;
+ //           double max;
+//            Normalizor.GetMinMaxActivationWithMargin(network.Activation.MinValue, network.Activation.MaxValue, out min, out max);
+            return MSECalculator.CalculateEpochMSEDenormalized(mseSum, testSet.PatternCount);
         }
 
-        private double CalculateDirectionGuessed() // assumes 1 output. 
+        private double CalculateDirectionGuessed(DirectionGuess dirGuessType) // assumes 1 output. 
         {
             if (testSet.PatternCount <= 1)
             {
@@ -78,7 +88,12 @@ namespace LearningNN
                 "correctly, exactly 1 output value is required");
             }
 
-            return CalculateDirectionImplementation(testSet.EnumeratePatterns().ToList());
+            if (dirGuessType == DirectionGuess.NetworkToNetwork)
+            {
+                return CalculateDirectionImplementation(testSet.EnumeratePatterns().ToList());
+            }
+
+            return CalculateDirectionVer2(testSet.EnumeratePatterns().ToList());
         }
 
         public static double CalculateDirectionImplementation(List<Pattern> patterns) // Public for unit tests
@@ -100,6 +115,33 @@ namespace LearningNN
             }
 
             return guessCount / (double)(patterns.Count - 1);
+        }
+
+        public static double CalculateDirectionVer2(List<Pattern> patterns) // 
+        {
+            double guessCount = 0;
+            Pattern prev = patterns[0];
+            Pattern next = null;
+            for (int i = 1; i < patterns.Count; i++) // heavy code duplication for now, can be refactored later
+            {
+                next = patterns[i];
+                int idealDir = Math.Sign(next.IdealOutput[0] - prev.IdealOutput[0]);
+                int predictedDir = Math.Sign(next.NetworkAnswer[0] - prev.IdealOutput[0]); // z tego, co rozumiem, tak liczy m. in. grupa Matkil-Matiz
+                if (idealDir == predictedDir)
+                {
+                    guessCount += 1.0;
+                }
+
+                prev = next;
+            }
+
+            return guessCount / (double)(patterns.Count - 1);
+        }
+
+        private enum DirectionGuess
+        {
+            NetworkToNetwork, // see if consecutive network predictions have the correct direction of change
+            IdealToNetwork // see if the change from last ideal output to next network answer has the right direction.
         }
     }
 }
