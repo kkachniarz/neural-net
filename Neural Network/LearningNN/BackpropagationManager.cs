@@ -90,13 +90,26 @@ namespace LearningNN
 
             if (dirGuessType == DirectionGuess.NetworkToNetwork)
             {
-                return CalculateDirectionImplementation(testSet.EnumeratePatterns().ToList());
+                return CalculateDirNetToNet(testSet.EnumeratePatterns().ToList());
             }
 
-            return CalculateDirectionVer2(testSet.EnumeratePatterns().ToList());
+            return CalculateDirIdealToNet(testSet.EnumeratePatterns().ToList());
         }
 
-        public static double CalculateDirectionImplementation(List<Pattern> patterns) // Public for unit tests
+        public static double CalculateDirNetToNet(List<Pattern> patterns)
+        {
+            return CalculateDirectionImplementation(patterns,
+                    (next, prev) => next.NetworkAnswer[0] - prev.NetworkAnswer[0]);
+        }
+
+        public static double CalculateDirIdealToNet(List<Pattern> patterns)
+        {
+            return CalculateDirectionImplementation(patterns,
+                (next, prev) => next.NetworkAnswer[0] - prev.IdealOutput[0]);
+        }
+
+        private static double CalculateDirectionImplementation(List<Pattern> patterns, 
+            Func<Pattern, Pattern, double> diffFunc) 
         {
             double guessCount = 0;
             Pattern prev = patterns[0];
@@ -105,28 +118,8 @@ namespace LearningNN
             {
                 next = patterns[i];
                 int idealDir = Math.Sign(next.IdealOutput[0] - prev.IdealOutput[0]);
-                int predictedDir = Math.Sign(next.NetworkAnswer[0] - prev.NetworkAnswer[0]);
-                if (idealDir == predictedDir)
-                {
-                    guessCount += 1.0;
-                }
+                int predictedDir = Math.Sign(diffFunc(next, prev));
 
-                prev = next;
-            }
-
-            return guessCount / (double)(patterns.Count - 1);
-        }
-
-        public static double CalculateDirectionVer2(List<Pattern> patterns) // 
-        {
-            double guessCount = 0;
-            Pattern prev = patterns[0];
-            Pattern next = null;
-            for (int i = 1; i < patterns.Count; i++) // heavy code duplication for now, can be refactored later
-            {
-                next = patterns[i];
-                int idealDir = Math.Sign(next.IdealOutput[0] - prev.IdealOutput[0]);
-                int predictedDir = Math.Sign(next.NetworkAnswer[0] - prev.IdealOutput[0]); // z tego, co rozumiem, tak liczy m. in. grupa Matkil-Matiz
                 if (idealDir == predictedDir)
                 {
                     guessCount += 1.0;

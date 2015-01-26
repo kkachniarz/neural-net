@@ -24,7 +24,7 @@ namespace Shell.Plotting
         public SingleRunReport BestReport { get { return Reports[0]; } }
 
         private Vector<double> Errors;
-        private Vector<double> DirectionMisguessRates;
+        private Vector<double> MPVer1;
         private Vector<double> MPVer2;
         private Vector<double> Iterations;
         private List<SingleRunReport> Reports;
@@ -34,7 +34,7 @@ namespace Shell.Plotting
         public AggregateResult(List<SingleRunReport> sortedReports, LearningSettings settings)
         {
             Errors = new DenseVector(sortedReports.Count);
-            DirectionMisguessRates = new DenseVector(sortedReports.Count);
+            MPVer1 = new DenseVector(sortedReports.Count);
             MPVer2 = new DenseVector(sortedReports.Count);
             Iterations = new DenseVector(sortedReports.Count);
             List<TimeSpan> timesTaken = new List<TimeSpan>(sortedReports.Count);
@@ -42,8 +42,8 @@ namespace Shell.Plotting
             for (int i = 0; i < sortedReports.Count; i++)
             {
                 Errors[i] = sortedReports[i].LearningResult.TestSetError;
-                DirectionMisguessRates[i] = sortedReports[i].LearningResult.DirectionMisguessRate;
-                MPVer2[i] = sortedReports[i].LearningResult.DirectionGuessVer2;
+                MPVer1[i] = sortedReports[i].LearningResult.MPVer1;
+                MPVer2[i] = sortedReports[i].LearningResult.MPVer2;
                 Iterations[i] = sortedReports[i].LearningResult.IterationsExecuted;
                 timesTaken.Add(sortedReports[i].LearningResult.TimeTaken);
             }
@@ -62,10 +62,10 @@ namespace Shell.Plotting
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("Test Set Error: M = {0}   SD = {1}\r\n", Errors.Average().ToString("E2"), 
                 Errors.StandardDeviation().ToString("E2"));
-            sb.AppendFormat("Test Set direction misguess rate: M = {0}   SD = {1}\r\n", 
-                DirectionMisguessRates.Average().ToString("E2"), 
-                DirectionMisguessRates.StandardDeviation().ToString("E2"));
-            sb.AppendFormat("MP ver. 2: M = {0}   SD = {1}\r\n",
+            sb.AppendFormat("MP ver. 1 (net-to-net): M = {0}   SD = {1}\r\n", 
+                MPVer1.Average().ToString("E2"), 
+                MPVer1.StandardDeviation().ToString("E2"));
+            sb.AppendFormat("MP ver. 2 (ideal-to-net): M = {0}   SD = {1}\r\n",
                 MPVer2.Average().ToString("E2"), MPVer2.StandardDeviation().ToString("E2"));
             sb.AppendFormat("Iterations: M = {0}  SD = {1}\r\n", Iterations.Average().ToString("F1"),
                 Iterations.StandardDeviation().ToString("F1"));
@@ -75,7 +75,7 @@ namespace Shell.Plotting
             // the two best scores are not necessarily from the same run!
             sb.AppendFormat("Best error: {0}, iterations used: {1}\r\n", Errors.Min().ToString("E2"), Iterations[BestErrorIndex]);
             sb.AppendFormat("Best direction misguess factor: {0}, iterations used: {1}\r\n", 
-                DirectionMisguessRates.Min().ToString("E2"), Iterations[DirectionMisguessRates.MinimumIndex()]);
+                MPVer1.Min().ToString("E2"), Iterations[MPVer1.MinimumIndex()]);
             sb.AppendFormat("Training got stuck: {0} of the time", PercentageLearningStuck.ToString("P1"));
             sb.AppendLine();
 

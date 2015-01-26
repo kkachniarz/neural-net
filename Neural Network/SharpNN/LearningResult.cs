@@ -15,9 +15,14 @@ namespace SharpNN
         public double DirectionGuessVer2 { get; set; }
         public bool GotStuck { get; set; }
         public TimeSpan TimeTaken { get; set; }
-        public double DirectionMisguessRate
+        public double MPVer1
         {
             get { return 1.0 - DirectionGuessRate; }
+        }
+
+        public double MPVer2
+        {
+            get { return 1.0 - DirectionGuessVer2; }
         }
 
         public int IterationsExecuted
@@ -49,7 +54,7 @@ namespace SharpNN
             sb.AppendFormat("Iterations executed: {0}\r\n", IterationsExecuted);
             sb.AppendFormat("Error on validation set: {0}\r\n", FinalTrainError.ToString("E2"));
             sb.AppendFormat("Error on test set: {0}\r\n", TestSetError.ToString("E2"));
-            sb.AppendFormat("Direction misguess: {0}\r\n", DirectionMisguessRate.ToString("E2"));
+            sb.AppendFormat("Direction misguess: {0}\r\n", MPVer1.ToString("E2"));
             sb.AppendFormat("Direction ver2: {0}\r\n", DirectionGuessVer2.ToString("E2"));
             sb.AppendFormat("Time taken: {0}s.\r\n", TimeTaken.TotalSeconds.ToString("F1"));
             return sb.ToString();

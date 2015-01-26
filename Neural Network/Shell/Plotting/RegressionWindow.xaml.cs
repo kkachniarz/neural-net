@@ -29,7 +29,7 @@ namespace Shell.Plotting
             InitializeComponent();
             RegressionPlot.Model = plotModel;
             this.Title = string.Format("{0}: TS Dir {1} TS Err {2}",  identifier,
-                learningResult.DirectionMisguessRate.ToString("E2"), learningResult.TestSetError.ToString("E2"));
+                learningResult.MPVer1.ToString("E2"), learningResult.TestSetError.ToString("E2"));
         }
     }
 }

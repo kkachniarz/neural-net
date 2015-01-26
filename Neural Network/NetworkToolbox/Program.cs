@@ -20,7 +20,8 @@ namespace NetworkToolbox
         static void Main(string[] args)
         {
             IFormatter formatter = new BinaryFormatter();
-            Stream stream = new FileStream("neural.bin", FileMode.Open, FileAccess.Read, FileShare.Read);
+            Stream stream = new FileStream("MLP_cts4_2000_7.63E-007.bin", 
+                FileMode.Open, FileAccess.Read, FileShare.Read);
             INetwork obj = (INetwork)formatter.Deserialize(stream);
             Console.WriteLine(obj is NeuralNetwork);
             stream.Close();
